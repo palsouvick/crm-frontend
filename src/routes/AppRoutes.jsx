@@ -1,0 +1,33 @@
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Login from "../auth/Login";
+import Register from "../auth/Register";
+import Dashboard from "../pages/Dashboard";
+import Customers from "../pages/Customers";
+import Leads from "../pages/Leads";
+import ActivityLogs from "../pages/ActivityLogs";
+import ProtectedRoute from "../components/ProtectedRoute";
+import FollowUp from '../pages/FollowUp';
+import Users from '../pages/Users';
+
+const AppRoutes = () => {
+  return (
+    <Router>
+      <Routes>
+       <Route path="/login" element={<Login />} />
+       <Route path="/register" element={<Register />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/users" element={<Users/>}/>
+        <Route path="/customers" element={<Customers />} />
+        <Route path="/leads" element={<Leads />} />
+        <Route path="/follow-up" element={<FollowUp />} />
+        <Route path="/activity-logs" element={<ActivityLogs />} />
+      </Route>
+      </Routes>
+    </Router>
+  )
+}
+
+export default AppRoutes
