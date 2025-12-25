@@ -9,6 +9,7 @@ import {
 } from "../api/customerApi";
 import CustomerModal from "../components/CustomerModal";
 import { getUsers } from "../api/userApi";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const Customers = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -19,6 +20,9 @@ const Customers = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -70,11 +74,18 @@ const Customers = () => {
     await fetchCustomers();
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this customer?"))
-      return;
-    await deleteCustomer(id);
-    fetchCustomers();
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true);
+      await deleteCustomer(deleteTarget._id);
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+      fetchCustomers();
+    } catch (err) {
+      console.error("Delete failed", err);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleExport = async () => {
@@ -87,6 +98,20 @@ const Customers = () => {
     a.download = "customers.csv";
     a.click();
   };
+
+  const TableSkeleton = ({ rows = 5, cols = 6 }) => (
+    <>
+      {Array.from({ length: rows }).map((_, i) => (
+        <tr key={i} className="border-b">
+          {Array.from({ length: cols }).map((_, j) => (
+            <td key={j} className="px-6 py-4">
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
 
   return (
     <Layout>
@@ -144,11 +169,7 @@ const Customers = () => {
 
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="4" className="p-4 text-center">
-                    Loading...
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} cols={6} />
               ) : customers.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="p-4 text-center">
@@ -168,14 +189,17 @@ const Customers = () => {
                           setSelectedCustomer(c);
                           setModalOpen(true);
                         }}
-                        className="text-blue-600 cursor-pointer"
+                        className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
                       >
                         Edit
                       </button>
 
                       <button
-                        onClick={() => handleDelete(c._id)}
-                        className="text-red-600 cursor-pointer"
+                        onClick={() => {
+                          setDeleteTarget(c);
+                          setDeleteOpen(true);
+                        }}
+                        className="bg-red-600 text-white px-2 py-1 rounded"
                       >
                         Delete
                       </button>
@@ -215,6 +239,17 @@ const Customers = () => {
           onClose={() => setModalOpen(false)}
           onSubmit={selectedCustomer ? handleUpdate : handleCreate}
           users={users}
+        />
+        <ConfirmDeleteModal
+          isOpen={deleteOpen}
+          title="Delete Customer"
+          message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+          onCancel={() => {
+            setDeleteOpen(false);
+            setDeleteTarget(null);
+          }}
+          onConfirm={confirmDelete}
+          loading={deleting}
         />
       </div>
     </Layout>

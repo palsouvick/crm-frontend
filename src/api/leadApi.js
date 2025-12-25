@@ -11,3 +11,7 @@ export const createLead = (data) => {
 export const updateLead = (id, data) => {
   return api.put(`/lead/${id}`, data);
 };
+
+export const getLeadById = (id) => {
+  return api.get(`/lead/${id}`);
+}

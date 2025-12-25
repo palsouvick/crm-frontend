@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/download.svg";
+import { isAdmin } from "../utils/auth";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -12,20 +13,15 @@ const Sidebar = () => {
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition
      ${
-       isActive
-         ? "bg-indigo-600 text-white"
-         : "text-gray-700 hover:bg-gray-100"
+       isActive ? "bg-indigo-600 text-white" : "text-gray-700 hover:bg-gray-100"
      }`;
 
   return (
-    <aside className="w-64 bg-white shadow-sm flex flex-col">
-      
+    <aside className="w-56 bg-white shadow-sm flex flex-col">
       {/* LOGO */}
       <div className="flex items-center gap-3 px-6 py-4 border-b">
         <img src={logo} alt="FlowCRM" className="w-8" />
-        <span className="text-xl font-bold text-indigo-600">
-          FlowCRM
-        </span>
+        <span className="text-xl font-bold text-indigo-600">FlowCRM</span>
       </div>
 
       {/* NAVIGATION */}
@@ -34,9 +30,11 @@ const Sidebar = () => {
           📊 Dashboard
         </NavLink>
 
-        <NavLink to="/users" className={linkClass}>
-          👥 Users
-        </NavLink>
+        {isAdmin() && (
+          <NavLink to="/users" className={linkClass}>
+            👥 Users
+          </NavLink>
+        )}
 
         <NavLink to="/customers" className={linkClass}>
           🧑 Customers

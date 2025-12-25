@@ -10,6 +10,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import FollowUp from '../pages/FollowUp';
 import Users from '../pages/Users';
 import Profile from '../pages/Profile';
+import LeadView from '../pages/LeadView';
 
 const AppRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const AppRoutes = () => {
         <Route path="/users" element={<Users/>}/>
         <Route path="/customers" element={<Customers />} />
         <Route path="/leads" element={<Leads />} />
+        <Route path="/leads/:id" element={<LeadView />} />
         <Route path="/follow-up" element={<FollowUp />} />
         <Route path="/activity-logs" element={<ActivityLogs />} />
       </Route>

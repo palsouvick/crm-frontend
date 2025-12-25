@@ -1,14 +1,10 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
-const LeadModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  customers,
-  users = [],
-}) => {
+const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
   const [form, setForm] = useState({
     customar: "",
+    title: "",
+    description: "",
     status: "new",
     expectedValue: "",
     assignedTo: "",
@@ -16,14 +12,40 @@ const LeadModal = ({
     remarks: "",
   });
 
-  if (!isOpen) return null;
-
+  
   const handleChange = (e) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   };
+  
+  useEffect(() => {
+    if (lead) {
+      setForm({
+        customar: lead.customar || "",
+        title: lead.title || "",
+        description: lead.description || "",
+        status: lead.status || "new",
+        expectedValue: lead.expectedValue || "",
+        assignedTo: lead.assignedTo || "",
+        source: lead.source || "website",
+        remarks: lead.remarks || "",
+      });
+    } else {
+      setForm({
+        customar: "",
+        title: "",
+        description: "",
+        status: "new",
+        expectedValue: "",
+        assignedTo: "",
+        source: "website",
+        remarks: "",
+      });
+    }
+  }, [lead]);
+if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -54,6 +76,15 @@ const LeadModal = ({
           </select>
 
           {/* Expected Value */}
+
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            className="w-full border px-3 py-2 rounded"
+            value={form.title}
+            onChange={handleChange}
+          />
           <input
             type="number"
             name="expectedValue"
@@ -62,6 +93,14 @@ const LeadModal = ({
             value={form.expectedValue}
             onChange={handleChange}
           />
+          {/* <input
+            type="text"
+            name="description"
+            placeholder="Description"
+            className="w-full border px-3 py-2 rounded"
+            value={form.description}
+            onChange={handleChange}
+          /> */}
 
           {/* Status */}
           <select
@@ -110,10 +149,10 @@ const LeadModal = ({
 
           {/* Remarks */}
           <textarea
-            name="remarks"
-            placeholder="Remarks / Notes"
+            name="description"
+            placeholder="Description"
             className="w-full border px-3 py-2 rounded"
-            value={form.remarks}
+            value={form.description}
             onChange={handleChange}
             rows={3}
           />

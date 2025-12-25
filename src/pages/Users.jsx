@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import { getUsers } from "../api/userApi";
+import { createUser, getUsers, updateUser } from "../api/userApi";
+import UserModal from "../components/UserModal";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -34,6 +35,69 @@ const Users = () => {
   useEffect(() => {
     fetchUsers();
   }, [page, search]);
+
+  const handleCreate = async (data) => {
+    const res = await createUser(data);
+    await fetchUsers();
+    setModalOpen(false);
+    setSelectedUsers(null);
+  };
+
+  const handleUpdate = async (data) => {
+    // To be implemented
+    await updateUser(selectedUsers._id, data);
+    await fetchUsers();
+    setModalOpen(false);
+    setSelectedUsers(null);
+  };
+  const StatusBadge = ({ status }) => {
+    const map = {
+      active: "bg-green-100 text-green-700",
+      inactive: "bg-gray-200 text-gray-600",
+    };
+
+    return (
+      <span
+        className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${
+          map[status] || "bg-gray-100 text-gray-600"
+        }`}
+      >
+        {status}
+      </span>
+    );
+  };
+
+  const RoleBadge = ({ role }) => {
+    const map = {
+      admin: "bg-indigo-100 text-indigo-700",
+      user: "bg-blue-100 text-blue-700",
+    };
+
+    return (
+      <span
+        className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${
+          map[role] || "bg-gray-100 text-gray-600"
+        }`}
+      >
+        {role}
+      </span>
+    );
+  };
+
+  const TableSkeleton = ({ rows = 5, cols = 6 }) => (
+    <>
+      {Array.from({ length: rows }).map((_, i) => (
+        <tr key={i} className="border-b">
+          {Array.from({ length: cols }).map((_, j) => (
+            <td key={j} className="px-6 py-4">
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+
   return (
     <Layout>
       <div className=" bg-white p-4 rounded shadow h-full">
@@ -59,7 +123,7 @@ const Users = () => {
           <div className="flex justify-between mb-4">
             <button
               onClick={() => {
-                setSelectedCustomer(null);
+                setSelectedUsers(null);
                 setModalOpen(true);
               }}
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
@@ -70,57 +134,76 @@ const Users = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white shadow rounded overflow-x-auto">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Phone</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Role</th>
-                <th className="p-3">Actions</th>
+            <thead className="bg-gray-50 border-b">
+              <tr className="text-gray-600">
+                <th className="px-6 py-3 text-left font-semibold">Name</th>
+                <th className="px-6 py-3 text-left font-semibold">Phone</th>
+                <th className="px-6 py-3 text-left font-semibold">Email</th>
+                <th className="px-6 py-3 text-left font-semibold">Status</th>
+                <th className="px-6 py-3 text-left font-semibold">Role</th>
+                <th className="px-6 py-3 text-right font-semibold">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="4" className="p-4 text-center">
-                    Loading...
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} cols={6} />
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="p-4 text-center">
-                    No Users found
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
+                    No users found
                   </td>
                 </tr>
               ) : (
-                users.map((c) => (
-                  <tr key={c._id} className="border-t">
-                    <td className="p-3">{c.name}</td>
-                    <td className="p-3">{c.phone}</td>
-                    <td className="p-3">{c.email}</td>
-                    <td className="p-3">{c.status}</td>
-                    <td className="p-3">{c.role}</td>
-                    <td className="p-3 flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedCustomer(c);
-                          setModalOpen(true);
-                        }}
-                        className="text-blue-600 cursor-pointer"
-                      >
-                        Edit
-                      </button>
+                users.map((u, index) => (
+                  <tr
+                    key={u._id}
+                    className={`border-b ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-indigo-50 transition`}
+                  >
+                    <td className="px-3 py-4 font-medium text-gray-800">
+                      {u.name}
+                    </td>
 
-                      <button
-                        onClick={() => handleDelete(c._id)}
-                        className="text-red-600 cursor-pointer"
-                      >
-                        Delete
-                      </button>
+                    <td className="px-3 py-4 text-gray-600">
+                      {u.phone || "—"}
+                    </td>
+
+                    <td className="px-3 py-4 text-gray-600">{u.email}</td>
+
+                    <td className="px-3 py-4">
+                      <StatusBadge status={u.status} />
+                    </td>
+
+                    <td className="px-3 py-4">
+                      <RoleBadge role={u.role} />
+                    </td>
+
+                    <td className="px-3 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedUsers(u);
+                            setModalOpen(true);
+                          }}
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(u._id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -151,13 +234,12 @@ const Users = () => {
             Next
           </button>
         </div>
-        {/* <CustomerModal
-            isOpen={modalOpen}
-            customer={selectedCustomer}
-            onClose={() => setModalOpen(false)}
-            onSubmit={selectedCustomer ? handleUpdate : handleCreate}
-            users={users}
-          /> */}
+        <UserModal
+          isOpen={modalOpen}
+          user={selectedUsers}
+          onClose={() => setModalOpen(false)}
+          onSubmit={selectedUsers ? handleUpdate : handleCreate}
+        />
       </div>
     </Layout>
   );
