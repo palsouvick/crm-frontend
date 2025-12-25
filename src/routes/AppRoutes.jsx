@@ -9,6 +9,7 @@ import ActivityLogs from "../pages/ActivityLogs";
 import ProtectedRoute from "../components/ProtectedRoute";
 import FollowUp from '../pages/FollowUp';
 import Users from '../pages/Users';
+import Profile from '../pages/Profile';
 
 const AppRoutes = () => {
   return (
@@ -19,6 +20,7 @@ const AppRoutes = () => {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/users" element={<Users/>}/>
         <Route path="/customers" element={<Customers />} />
         <Route path="/leads" element={<Leads />} />

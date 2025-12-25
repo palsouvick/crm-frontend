@@ -1,8 +1,11 @@
 import React from 'react'
+import Layout from "../components/Layout";
 
 const FollowUp = () => {
   return (
-    <div>FollowUp</div>
+    <Layout>
+      <div>FollowUp</div>
+    </Layout>
   )
 }
 

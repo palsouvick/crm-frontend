@@ -9,3 +9,11 @@ export const registerUser = (data) => {
 export const loginUser = (data) => {
   return api.post("/auth/login", data);
 };
+
+export const fetchUserProfile = () => {
+  return api.get("/auth/profile");
+};
+
+export const updateUserProfile = (data) => {
+  return api.put("/auth/profile", data);
+};

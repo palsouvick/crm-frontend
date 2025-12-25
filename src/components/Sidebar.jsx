@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import logo from "../assets/download.svg";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -9,50 +10,60 @@ const Sidebar = () => {
   };
 
   const linkClass = ({ isActive }) =>
-    `block px-4 py-2 rounded transition ${
-      isActive
-        ? "bg-blue-600 text-white"
-        : "text-gray-700 hover:bg-gray-200"
-    }`;
+    `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition
+     ${
+       isActive
+         ? "bg-indigo-600 text-white"
+         : "text-gray-700 hover:bg-gray-100"
+     }`;
 
   return (
-    <aside className="w-64 bg-white shadow">
-      <div className="p-4 text-xl font-bold border-b">
-        CRM System
+    <aside className="w-64 bg-white shadow-sm flex flex-col">
+      
+      {/* LOGO */}
+      <div className="flex items-center gap-3 px-6 py-4 border-b">
+        <img src={logo} alt="FlowCRM" className="w-8" />
+        <span className="text-xl font-bold text-indigo-600">
+          FlowCRM
+        </span>
       </div>
 
-      <nav className="p-4 space-y-2">
+      {/* NAVIGATION */}
+      <nav className="flex-1 px-4 py-6 space-y-1">
         <NavLink to="/" className={linkClass}>
-          Dashboard
+          📊 Dashboard
         </NavLink>
 
         <NavLink to="/users" className={linkClass}>
-          Users
+          👥 Users
         </NavLink>
-        
+
         <NavLink to="/customers" className={linkClass}>
-          Customers
+          🧑 Customers
         </NavLink>
 
         <NavLink to="/leads" className={linkClass}>
-          Leads
+          📋 Leads
         </NavLink>
-        
+
         <NavLink to="/follow-up" className={linkClass}>
-          Follow Up
+          ⏰ Follow Up
         </NavLink>
 
         <NavLink to="/activity-logs" className={linkClass}>
-          Activity Logs
+          📝 Activity Logs
         </NavLink>
+      </nav>
 
+      {/* LOGOUT */}
+      <div className="p-4 border-t">
         <button
           onClick={logout}
-          className="w-full text-left px-4 py-2 rounded text-red-600 hover:bg-red-100"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
         >
-          Logout
+          🚪 Logout
         </button>
-      </nav>
+      </div>
     </aside>
   );
 };
