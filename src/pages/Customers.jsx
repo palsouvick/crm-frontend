@@ -55,8 +55,17 @@ const Customers = () => {
     }
   };
 
+  // useEffect(() => {
+  //   fetchUsers();
+  //   fetchCustomers();
+  // }, [page, search]);
+  // Fetch users once
   useEffect(() => {
-    fetchUsers();
+    if (users.length === 0) fetchUsers();
+  }, []);
+
+  // Initial customers fetch
+  useEffect(() => {
     fetchCustomers();
   }, [page, search]);
 

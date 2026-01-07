@@ -11,6 +11,12 @@ import FollowUp from '../pages/FollowUp';
 import Users from '../pages/Users';
 import Profile from '../pages/Profile';
 import LeadView from '../pages/LeadView';
+import Campaigns from '../pages/Campaigns';
+import EmailTemplate from '../pages/EmailTemplate';
+import EmailTemplateCreate from '../pages/EmailTemplateCreate';
+import EmailTemplateEdit from '../pages/EmailTemplateEdit';
+import EmailTemplateView from '../pages/EmailTemplateView';
+import CampaignView from '../pages/CampaignView';
 
 const AppRoutes = () => {
   return (
@@ -22,12 +28,18 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/users" element={<Users/>}/>
         <Route path="/customers" element={<Customers />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/leads/:id" element={<LeadView />} />
         <Route path="/follow-up" element={<FollowUp />} />
         <Route path="/activity-logs" element={<ActivityLogs />} />
+        <Route path="/email-templates" element={<EmailTemplate />} />
+        <Route path="/email-templates/create" element={<EmailTemplateCreate />} />
+        <Route path="/email-templates/:id" element={<EmailTemplateView />} />
+        <Route path="/email-templates/:id/edit" element={<EmailTemplateEdit />} />
+        <Route path="/campaigns/:id" element={<CampaignView/>}/>
       </Route>
       </Routes>
     </Router>
