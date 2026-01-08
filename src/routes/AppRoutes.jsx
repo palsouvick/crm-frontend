@@ -17,6 +17,7 @@ import EmailTemplateCreate from '../pages/EmailTemplateCreate';
 import EmailTemplateEdit from '../pages/EmailTemplateEdit';
 import EmailTemplateView from '../pages/EmailTemplateView';
 import CampaignView from '../pages/CampaignView';
+import FollowUpCreate from '../pages/FollowUpCreate';
 
 const AppRoutes = () => {
   return (
@@ -34,6 +35,7 @@ const AppRoutes = () => {
         <Route path="/leads" element={<Leads />} />
         <Route path="/leads/:id" element={<LeadView />} />
         <Route path="/follow-up" element={<FollowUp />} />
+        <Route path="/follow-up/create" element={<FollowUpCreate />} />
         <Route path="/activity-logs" element={<ActivityLogs />} />
         <Route path="/email-templates" element={<EmailTemplate />} />
         <Route path="/email-templates/create" element={<EmailTemplateCreate />} />

@@ -1,4 +1,4 @@
-import axios from "../utils/axios";
+import api from "./axios";
 
 export const getFollowUps = (params) => {
     return api.get("/follow-ups", {params});
