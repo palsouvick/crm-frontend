@@ -21,3 +21,7 @@ export const updateCustomer = (id, data) => {
 export const deleteCustomer = (id) => {
   return api.delete(`/customer/${id}`);
 };
+
+export const totalCustomer = () => {
+  return api.get("/customer/count")
+}

@@ -10,6 +10,7 @@ import {
 import CustomerModal from "../components/CustomerModal";
 import { getUsers } from "../api/userApi";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import EmptyState from "../components/EmptyState";
 
 const Customers = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -181,8 +182,16 @@ const Customers = () => {
                 <TableSkeleton rows={5} cols={6} />
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="p-4 text-center">
-                    No customers found
+                  <td colSpan="6">
+                    <div className="h-56 flex flex-col items-center justify-center text-gray-500">
+                      <EmptyState
+                        icon="🗂️"
+                        title="No Follow-Ups Yet"
+                        description="You haven’t added any customer. Start by creating one."
+                        actionText="+ Add First Follow-Up"
+                        onAction={() => setOpen(true)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ) : (

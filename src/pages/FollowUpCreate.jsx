@@ -5,6 +5,7 @@ import { createFollowUp } from "../api/followUpApi";
 import { getCustomers } from "../api/customerApi";
 import { getLeads } from "../api/leadApi";
 import { getUsers } from "../api/userApi";
+import UserAvailabilityCalendar from "../components/UserAvailabilityCalendar";
 
 const FollowUpCreate = () => {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ const FollowUpCreate = () => {
 
   const [form, setForm] = useState({
     customer: "",
-    lead: "",
     assignedTo: "",
     type: "call",
     followUpDate: "",
@@ -73,7 +73,7 @@ const FollowUpCreate = () => {
     }
     try {
       await createFollowUp(form);
-      navigate("/follow-ups");
+      navigate("/follow-up");
     } catch (err) {
       console.error("Create follow-up failed", err);
     }
@@ -81,40 +81,44 @@ const FollowUpCreate = () => {
 
   return (
     <Layout>
-      <div className="w-full bg-white p-6 rounded shadow">
-        <h1 className="text-2xl font-bold mb-6">Create Follow-up</h1>
+      <div className="w-full bg-white p-6 rounded shadow ">
+        {/* 🔹 BASIC INFO */}
+        <div
+          className={`grid grid-cols-1 gap-4 ${
+            form.assignedTo ? "md:grid-cols-4" : "md:grid-cols-3"
+          }`}
+        >
+          <div className="lg:col-span-2 space-y-6">
+            <h1 className="text-2xl font-bold mb-6">Create Follow-up</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 🔹 BASIC INFO */}
-          <div>
-            <h2 className="font-semibold mb-3 text-gray-700">
-              Basic Information
-            </h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <h2 className="font-semibold mb-3 text-gray-700">
+                Basic Information
+              </h2>
+              <div className="flex gap-3">
+                <div className="w-full">
+                  <select
+                    name="customer"
+                    onChange={handleChange}
+                    className={`border rounded px-3 py-2 w-full ${
+                      errors.customer ? "border-red-500" : ""
+                    }`}
+                  >
+                    <option value="">Select Customer</option>
+                    {customers.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.customer && (
+                    <span className="text-red-500 text-sm">
+                      {errors.customer}
+                    </span>
+                  )}
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <select
-                  name="customer"
-                  onChange={handleChange}
-                  className={`border rounded px-3 py-2 w-full ${
-                    errors.customer ? "border-red-500" : ""
-                  }`}
-                >
-                  <option value="">Select Customer</option>
-                  {customers.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.customer && (
-                  <span className="text-red-500 text-sm">
-                    {errors.customer}
-                  </span>
-                )}
-              </div>
-
-              {/* <div>
+                {/* <div>
                 <select
                   name="lead"
                   onChange={handleChange}
@@ -134,105 +138,118 @@ const FollowUpCreate = () => {
                 )}
               </div> */}
 
-              <div>
-                <select
-                  name="assignedTo"
-                  onChange={handleChange}
-                  className={`border rounded px-3 py-2 w-full ${
-                    errors.assignedTo ? "border-red-500" : ""
-                  }`}
-                >
-                  <option value="">Assign To</option>
-                  {users.map((u) => (
-                    <option key={u._id} value={u._id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-full">
+                  <select
+                    name="assignedTo"
+                    onChange={handleChange}
+                    className={`border rounded px-3 py-2 w-full ${
+                      errors.assignedTo ? "border-red-500" : ""
+                    }`}
+                  >
+                    <option value="">Assign To</option>
+                    {users.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
 
-                {errors.assignedTo && (
-                  <p className="text-red-500 text-sm">{errors.assignedTo}</p>
-                )}
+                  {errors.assignedTo && (
+                    <p className="text-red-500 text-sm">{errors.assignedTo}</p>
+                  )}
+                </div>
               </div>
-            </div>
+              <div>
+                <h2 className="font-semibold mb-3 text-gray-700">
+                  Follow-up Details
+                </h2>
+
+                <div className="">
+                  <div className="lg:col-span-2">
+                    <div className="flex gap-3 mb-3">
+                      <select
+                        name="type"
+                        value={form.type}
+                        onChange={handleChange}
+                        className="border rounded px-3 py-2 w-full"
+                      >
+                        <option value="call">Call</option>
+                        <option value="meeting">Meeting</option>
+                        <option value="email">Email</option>
+                        <option value="demo">Demo</option>
+                        <option value="payment">Payment</option>
+                      </select>
+
+                      <select
+                        name="priority"
+                        value={form.priority}
+                        onChange={handleChange}
+                        className="border rounded px-3 py-2 w-full"
+                      >
+                        <option value="low">Low Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="high">High Priority</option>
+                      </select>
+                    </div>
+                    {/* 🔹 SCHEDULE */}
+                    <div className="mb-3">
+                      <h2 className="font-semibold mb-3 text-gray-700">
+                        Schedule
+                      </h2>
+
+                      <input
+                        type="datetime-local"
+                        name="followUpDate"
+                        onChange={handleChange}
+                        className="border rounded px-3 py-2 w-full md:w-1/2"
+                      />
+                    </div>
+
+                    {/* 🔹 NOTES */}
+                    <div>
+                      <h2 className="font-semibold mb-3 text-gray-700">
+                        Notes
+                      </h2>
+
+                      <textarea
+                        name="followUpNotes"
+                        placeholder="Discussion points, agenda, remarks..."
+                        rows="4"
+                        onChange={handleChange}
+                        className="border rounded px-3 py-2 w-full"
+                      />
+                    </div>
+                    {/* 🔹 ACTIONS */}
+                    <div className="flex justify-end gap-3 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/follow-up")}
+                        className="border px-5 py-2 rounded"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="submit"
+                        className="bg-indigo-600 text-white px-6 py-2 rounded"
+                      >
+                        Save Follow-up
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
-
-          {/* 🔹 FOLLOW-UP DETAILS */}
-          <div>
-            <h2 className="font-semibold mb-3 text-gray-700">
-              Follow-up Details
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <select
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                className="border rounded px-3 py-2"
-              >
-                <option value="call">Call</option>
-                <option value="meeting">Meeting</option>
-                <option value="email">Email</option>
-                <option value="demo">Demo</option>
-                <option value="payment">Payment</option>
-              </select>
-
-              <select
-                name="priority"
-                value={form.priority}
-                onChange={handleChange}
-                className="border rounded px-3 py-2"
-              >
-                <option value="low">Low Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="high">High Priority</option>
-              </select>
-            </div>
+          {/* RIGHT CALENDAR */}
+          <div
+            className={`${
+              form.assignedTo ? "md:col-span-2" : "md:col-span-1"
+            } border rounded p-3 bg-gray-50 h-full`}
+          >
+            <UserAvailabilityCalendar assignedTo={form.assignedTo} />
           </div>
-
-          {/* 🔹 SCHEDULE */}
-          <div>
-            <h2 className="font-semibold mb-3 text-gray-700">Schedule</h2>
-
-            <input
-              type="datetime-local"
-              name="followUpDate"
-              onChange={handleChange}
-              className="border rounded px-3 py-2 w-full md:w-1/2"
-            />
-          </div>
-
-          {/* 🔹 NOTES */}
-          <div>
-            <h2 className="font-semibold mb-3 text-gray-700">Notes</h2>
-
-            <textarea
-              name="followUpNotes"
-              placeholder="Discussion points, agenda, remarks..."
-              rows="4"
-              onChange={handleChange}
-              className="border rounded px-3 py-2 w-full"
-            />
-          </div>
-
-          {/* 🔹 ACTIONS */}
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/follow-ups")}
-              className="border px-5 py-2 rounded"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="bg-indigo-600 text-white px-6 py-2 rounded"
-            >
-              Save Follow-up
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </Layout>
   );

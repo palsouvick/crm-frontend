@@ -102,7 +102,8 @@ const Leads = () => {
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-3 text-left">Customer Name</th>
-                <th className="p-3 text-left">Customer Email</th>
+                <th className="p-3 text-left">Email</th>
+                <th className="p-3 text-left">Phone</th>
                 <th className="p-3">Value</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Action</th>
@@ -122,6 +123,7 @@ const Leads = () => {
                   <tr key={l._id} className="border-t">
                     <td className="p-3">{l.customar?.name}</td>
                     <td className="p-3">{l.customar?.email}</td>
+                    <td className="p-3">{l.customar?.phone}</td>
                     <td className="p-3">{l.expectedValue || "—"}</td>
                     <td className="p-3 capitalize">{l.status}</td>
                     <td className="p-3">

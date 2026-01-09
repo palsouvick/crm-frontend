@@ -3,18 +3,26 @@ import Layout from "../components/Layout";
 import { Link } from "react-router-dom";
 import { getFollowUps } from "../api/followUpApi";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
 
 const FollowUp = () => {
   const [followUps, setFollowUps] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+  };
 
   const fetchFollowup = async () => {
     try {
       const res = await getFollowUps();
-      setFollowUps(res.data);
-      console.log(" res-", res.data);
+      setFollowUps(res.data.data);
+      setTotalPages(res.data.pagination.totalPages);
     } catch (error) {
       console.log(error);
     }
@@ -38,8 +46,15 @@ const FollowUp = () => {
   return (
     <Layout>
       <div className="bg-white p-4 rounded shadow h-full">
+        <h1 className="text-xl font-bold mb-2">Follow Ups</h1>
+
         <div className="flex justify-between mb-4">
-          <h1 className="text-xl font-bold">Follow Ups</h1>
+          <input
+            className="border px-3 py-1 mt-1 rounded-lg w-72 focus:ring-2 focus:ring-indigo-500"
+            placeholder="Search customer..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <button
             onClick={() => navigate("/follow-up/create")}
             className="bg-indigo-600 text-white px-4 py-2 rounded"
@@ -52,12 +67,12 @@ const FollowUp = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-2">Customer</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Assigned</th>
-                <th>Actions</th>
+                <th className="p-3 text-left">Customer</th>
+                <th className="p-3 text-left">Type</th>
+                <th className="p-3 text-left">Date</th>
+                <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-left">Assigned</th>
+                <th className="p-3 text-left">Actions</th>
               </tr>
             </thead>
 
@@ -68,22 +83,13 @@ const FollowUp = () => {
                 <tr>
                   <td colSpan="6">
                     <div className="h-56 flex flex-col items-center justify-center text-gray-500">
-                      <div className="text-5xl mb-3">🗂️</div>
-
-                      <h3 className="text-lg font-semibold text-gray-700">
-                        No Follow-Ups Yet
-                      </h3>
-
-                      <p className="text-sm text-gray-500 mt-1">
-                        You haven’t added any follow-ups. Start by creating one.
-                      </p>
-
-                      <button
-                        onClick={() => navigate("/follow-up/create")}
-                        className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm"
-                      >
-                        + Add First Follow-Up
-                      </button>
+                      <EmptyState
+                        icon="🗂️"
+                        title="No Follow-Ups Yet"
+                        description="You haven’t added any follow-ups. Start by creating one."
+                        actionText="+ Add First Follow-Up"
+                        navigateTo={() => navigate("/follow-up/create")}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -111,14 +117,14 @@ const FollowUp = () => {
                       {f.followUpStatus === "pending" && (
                         <button
                           onClick={() => handleComplete(f._id)}
-                          className="text-green-600"
+                          className="border px-3 py-1 bg-green-600 text-white rounded"
                         >
                           Done
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(f._id)}
-                        className="text-red-600"
+                        className="border bg-red-600 text-white px-3 py-1 rounded"
                       >
                         Delete
                       </button>
@@ -128,6 +134,28 @@ const FollowUp = () => {
               )}
             </tbody>
           </table>
+        </div>
+        {/* Pagination */}
+        <div className="flex gap-2 mt-4">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          <span className="px-3 py-1">
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
 

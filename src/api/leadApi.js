@@ -15,3 +15,7 @@ export const updateLead = (id, data) => {
 export const getLeadById = (id) => {
   return api.get(`/lead/${id}`);
 }
+
+export const totalLeads = () => {
+  return api.get("/lead/count");
+}

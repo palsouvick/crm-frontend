@@ -1,12 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import StatCard from "../components/StatCard";
+import { totalCustomer } from "../api/customerApi";
+import {totalLeads} from "../api/leadApi";
+import { promise } from "zod";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [leadsGrowth, setLeadsGrowth] = useState([]);
   const [leadStatus, setLeadStatus] = useState([]);
+  const [customer, setCustomer] = useState(0);
+  const [lead, setLead] = useState(0);
+
+  const fetchData = async() => {
+    try{
+      const [res, res2] = await Promise.all([totalCustomer(), totalLeads()]);
+      setCustomer(res.data.total);
+      setLead(res2.data.total);
+      console.log(res.data);
+    }catch(error){
+      console.error("Failed to fetch leads or customers", error);
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <Layout>
@@ -22,14 +42,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Customers"
-          value="—"
+          value={customer}
           icon="🧑"
           color="bg-indigo-600"
         />
 
         <StatCard
           title="Total Leads"
-          value="—"
+          value={lead}
           icon="📋"
           color="bg-emerald-500"
         />
