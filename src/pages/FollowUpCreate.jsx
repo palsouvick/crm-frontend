@@ -16,7 +16,7 @@ const FollowUpCreate = () => {
   const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
-    customer: "",
+    lead: "",
     assignedTo: "",
     type: "call",
     followUpDate: "",
@@ -26,8 +26,8 @@ const FollowUpCreate = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.customer) {
-      newErrors.customer = "Customer is required";
+    if (!form.lead) {
+      newErrors.customer = "Lead is required";
     }
 
     if (!form.assignedTo) {
@@ -96,7 +96,7 @@ const FollowUpCreate = () => {
                 Basic Information
               </h2>
               <div className="flex gap-3">
-                <div className="w-full">
+                {/* <div className="w-full">
                   <select
                     name="customer"
                     onChange={handleChange}
@@ -116,9 +116,9 @@ const FollowUpCreate = () => {
                       {errors.customer}
                     </span>
                   )}
-                </div>
+                </div> */}
 
-                {/* <div>
+                <div className="w-full">
                 <select
                   name="lead"
                   onChange={handleChange}
@@ -129,14 +129,14 @@ const FollowUpCreate = () => {
                   <option value="">Select Lead</option>
                   {leads.map((l) => (
                     <option key={l._id} value={l._id}>
-                      {l.status}
+                      {l.customer.name}
                     </option>
                   ))}
                 </select>
                 {errors.lead && (
                   <span className="text-red-500 text-sm">{errors.lead}</span>
                 )}
-              </div> */}
+              </div>
 
                 <div className="w-full">
                   <select

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import { Link } from "react-router-dom";
-import { getFollowUps } from "../api/followUpApi";
+import { getFollowUps,deleteFollowUp } from "../api/followUpApi";
 import { useNavigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const FollowUp = () => {
   const [followUps, setFollowUps] = useState([]);
@@ -13,23 +14,51 @@ const FollowUp = () => {
   const [search, setSearch] = useState("");
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(5);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleSearch = (e) => {
+    console.log(e.target.value);
     setSearch(e.target.value);
+    setPage(1);
   };
 
   const fetchFollowup = async () => {
     try {
-      const res = await getFollowUps();
+      setLoading(true);
+      const res = await getFollowUps({
+        page,
+        limit,
+        search,
+      });
       setFollowUps(res.data.data);
       setTotalPages(res.data.pagination.totalPages);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.log(error);
     }
   };
   useEffect(() => {
     fetchFollowup();
-  }, []);
+  }, [search, page, limit]);
+
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true);
+      await deleteFollowUp(deleteTarget._id);
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+      fetchFollowup();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   const TableSkeleton = ({ rows = 5, cols = 6 }) => (
     <>
       {Array.from({ length: rows }).map((_, i) => (
@@ -53,7 +82,7 @@ const FollowUp = () => {
             className="border px-3 py-1 mt-1 rounded-lg w-72 focus:ring-2 focus:ring-indigo-500"
             placeholder="Search customer..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearch}
           />
           <button
             onClick={() => navigate("/follow-up/create")}
@@ -67,7 +96,7 @@ const FollowUp = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-3 text-left">Customer</th>
+                <th className="p-3 text-left">Lead</th>
                 <th className="p-3 text-left">Type</th>
                 <th className="p-3 text-left">Date</th>
                 <th className="p-3 text-left">Status</th>
@@ -96,7 +125,7 @@ const FollowUp = () => {
               ) : (
                 followUps.map((f) => (
                   <tr key={f._id} className="border-t">
-                    <td className="p-2">{f.customer?.name}</td>
+                    <td className="p-2">{f.lead?.customer?.name || "-"}</td>
                     <td className="capitalize">{f.type}</td>
                     <td>{new Date(f.followUpDate).toLocaleString()}</td>
                     <td>
@@ -123,7 +152,10 @@ const FollowUp = () => {
                         </button>
                       )}
                       <button
-                        onClick={() => handleDelete(f._id)}
+                        onClick={() => {
+                          setDeleteTarget(f);
+                          setDeleteOpen(true);
+                        }}
                         className="border bg-red-600 text-white px-3 py-1 rounded"
                       >
                         Delete
@@ -157,6 +189,17 @@ const FollowUp = () => {
             Next
           </button>
         </div>
+        <ConfirmDeleteModal
+          isOpen={deleteOpen}
+          title="Delete Customer"
+          message={`Are you sure you want to delete "${deleteTarget?.lead?.customer?.name}"? This action cannot be undone.`}
+          onCancel={() => {
+            setDeleteOpen(false);
+            setDeleteTarget(null);
+          }}
+          onConfirm={confirmDelete}
+          loading={deleting}
+        />
       </div>
 
       {/* {open && (

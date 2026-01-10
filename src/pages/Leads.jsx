@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import LeadModal from "../components/LeadModal";
-import { getLeads, createLead, updateLead } from "../api/leadApi";
+import { getLeads, createLead, updateLead, deleteLead } from "../api/leadApi";
 import { getCustomers } from "../api/customerApi";
 import { getUsers } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const Leads = () => {
   const [leads, setLeads] = useState([]);
@@ -17,6 +18,9 @@ const Leads = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -84,6 +88,20 @@ const Leads = () => {
     </>
   );
 
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true);
+      await deleteLead(deleteTarget._id);
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (error) {
+      console.error("Delete failed", error);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <Layout>
       <div className=" bg-white p-4 rounded shadow h-full">
@@ -121,9 +139,9 @@ const Leads = () => {
               ) : (
                 leads.map((l) => (
                   <tr key={l._id} className="border-t">
-                    <td className="p-3">{l.customar?.name}</td>
-                    <td className="p-3">{l.customar?.email}</td>
-                    <td className="p-3">{l.customar?.phone}</td>
+                    <td className="p-3">{l.customer?.name}</td>
+                    <td className="p-3">{l.customer?.email}</td>
+                    <td className="p-3">{l.customer?.phone}</td>
                     <td className="p-3">{l.expectedValue || "—"}</td>
                     <td className="p-3 capitalize">{l.status}</td>
                     <td className="p-3">
@@ -156,7 +174,10 @@ const Leads = () => {
                         View</button>
 
                       <button
-                        onClick={() => handleDelete(l._id)}
+                        onClick={() =>{
+                          setDeleteTarget(l);
+                          setDeleteOpen(true);
+                        }}
                         className="bg-red-600 text-white px-2 py-1 rounded cursor-pointer ml-2"
                       >
                         Delete
@@ -198,6 +219,17 @@ const Leads = () => {
           customers={customers}
           lead={selectedLead}
           users={users}
+        />
+        <ConfirmDeleteModal
+          isOpen={deleteOpen}
+          title="Delete Customer"
+          message={`Are you sure you want to delete "${deleteTarget?.customer?.name}"? This action cannot be undone.`}
+          onCancel={() => {
+            setDeleteOpen(false);
+            setDeleteTarget(null);
+          }}
+          onConfirm={confirmDelete}
+          loading={deleting}
         />
       </div>
     </Layout>

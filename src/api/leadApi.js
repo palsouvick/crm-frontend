@@ -19,3 +19,7 @@ export const getLeadById = (id) => {
 export const totalLeads = () => {
   return api.get("/lead/count");
 }
+
+export const deleteLead = (id) => {
+  return api.delete(`/lead/${id}`);
+}
