@@ -1,17 +1,34 @@
 import { useState, useEffect } from "react";
 
-const UserModal = ({ isOpen, onClose, onSubmit, user }) => {
+const UserModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  user,
+  serverErrors: backendErrors,
+}) => {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
+    password: "",
     dob: "",
     role: "",
     status: "",
   });
+  // const [serverErrors, setServerErrors] = useState(null);
   const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    // 🔥 clear server error for this field
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
   useEffect(() => {
-    console.log("UserModal user prop:", user);
     setForm({
       name: user?.name || "",
       email: user?.email || "",
@@ -22,6 +39,15 @@ const UserModal = ({ isOpen, onClose, onSubmit, user }) => {
       status: user?.status || "",
     });
   }, [user]);
+
+  useEffect(() => {
+    if (backendErrors) {
+      setErrors((prev) => ({ ...prev, ...backendErrors }));
+    }
+  }, [backendErrors]);
+
+  // 🔹 2. Early return AFTER hooks
+  if (!isOpen) return null;
 
   const validate = () => {
     const newErrors = {};
@@ -35,20 +61,17 @@ const UserModal = ({ isOpen, onClose, onSubmit, user }) => {
     if (!form.role.trim()) newErrors.role = "Role is required";
 
     setErrors(newErrors);
+    console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
-  if (!isOpen) return null;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
-      if (validate()) {
-        onSubmit(form);
-        onClose();
-      }
+      console.log("🔥 handleSubmit called");
+      if (!validate()) return;
+      onSubmit(form);
+      console.log("🔥 calling onSubmit", form); // 👈 এটা
     } catch (error) {
       console.error("Submission error:", error);
     }
@@ -130,6 +153,7 @@ const UserModal = ({ isOpen, onClose, onSubmit, user }) => {
             value={form.status}
             onChange={handleChange}
           >
+            <option value="">Select Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
@@ -140,6 +164,7 @@ const UserModal = ({ isOpen, onClose, onSubmit, user }) => {
             value={form.role}
             onChange={handleChange}
           >
+            <option value="">Select Role</option>
             <option value="admin">Admin</option>
             <option value="sale">Sale</option>
             <option value="support">Support</option>

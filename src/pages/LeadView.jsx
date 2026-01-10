@@ -80,10 +80,10 @@ const LeadView = () => {
           {/* DETAILS GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <Detail label="Customer" value={lead.customar?.name || "—"} />
-            <Detail label="Email" value={lead.customar?.email || "—"} />
-            <Detail label="Phone" value={lead.customar?.phone || "—"} />
-            <Detail label="Company" value={lead.customar?.company || "—"} />
+            <Detail label="Customer" value={lead.customer?.name || "—"} />
+            <Detail label="Email" value={lead.customer?.email || "—"} />
+            <Detail label="Phone" value={lead.customer?.phone || "—"} />
+            <Detail label="Company" value={lead.customer?.company || "—"} />
 
             <Detail label="Expected Value" value={`₹ ${lead.expectedValue || 0}`} />
             <Detail label="Source" value={lead.source} />

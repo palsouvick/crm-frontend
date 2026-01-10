@@ -1,55 +1,143 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import { createUser, getUsers, updateUser } from "../api/userApi";
+import { createUser, getUsers, updateUser, deleteUser } from "../api/userApi";
 import UserModal from "../components/UserModal";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useCrudMutation from "../hooks/useCrudMutation";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import toast from "react-hot-toast";
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
+  // const [users, setUsers] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState(null);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [serverErrors, setServerErrors] = useState(null);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const res = await getUsers({
+  // const fetchUsers = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await getUsers({
+  //       page,
+  //       limit: 5,
+  //       search,
+  //     });
+  //     setUsers(res.data.data);
+  //     setTotalPages(res.data.pagination.totalPages);
+  //   } catch (error) {
+  //     console.error("Failed to fetch users", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // const handleSearch = () => {
+  //   setPage(1);
+  //   fetchUsers();
+  // };
+  // useEffect(() => {
+  //   fetchUsers();
+  // }, [page, search]);
+  const { data, isLoading } = useQuery({
+    queryKey: ["users", page, search],
+    queryFn: () =>
+      getUsers({
         page,
         limit: 5,
         search,
-      });
-      setUsers(res.data.data);
-      setTotalPages(res.data.pagination.totalPages);
-    } catch (error) {
-      console.error("Failed to fetch users", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleSearch = () => {
-    setPage(1);
-    fetchUsers();
-  };
-  useEffect(() => {
-    fetchUsers();
-  }, [page, search]);
+      }),
+  });
+  const users = data?.data?.data || [];
+  const totalPages = data?.data?.pagination?.totalPages || 1;
 
-  const handleCreate = async (data) => {
-    const res = await createUser(data);
-    await fetchUsers();
-    setModalOpen(false);
-    setSelectedUsers(null);
+  // const handleCreate = async (data) => {
+  //   const res = await createUser(data);
+  //   await fetchUsers();
+  //   setModalOpen(false);
+  //   setSelectedUsers(null);
+  // };
+
+  // const handleUpdate = async (data) => {
+  //   // To be implemented
+  //   await updateUser(selectedUsers._id, data);
+  //   await fetchUsers();
+  //   setModalOpen(false);
+  //   setSelectedUsers(null);
+  // };
+  const createUserMutation = useCrudMutation({
+    mutationFn: createUser,
+    queryKey: ["users"],
+  });
+
+  const handleCreate = (formData) => {
+    setServerErrors(null);
+
+    createUserMutation.mutate(formData, {
+      onSuccess: () => {
+        toast.success("User created successfully");
+        setModalOpen(false);
+        setSelectedUsers(null);
+      },
+      onError: (error) => {
+        const data = error?.response?.data;
+        console.log("data ---", data);
+        if (data?.field) {
+          // 🔥 email error modal এ পাঠাবো
+          setServerErrors({
+            [data.field]: data.message,
+          });
+        } else {
+          alert(data?.message || "Something went wrong");
+        }
+      },
+    });
   };
 
-  const handleUpdate = async (data) => {
-    // To be implemented
-    await updateUser(selectedUsers._id, data);
-    await fetchUsers();
-    setModalOpen(false);
-    setSelectedUsers(null);
+  // update
+  const updateUserMutation = useCrudMutation({
+    mutationFn: ({ id, data }) => updateUser(id, data),
+    queryKey: ["users"],
+  });
+
+  const handleUpdate = (formData) => {
+    setServerErrors(null);
+
+    updateUserMutation.mutate(
+      {
+        id: selectedUsers._id,
+        data: formData,
+      },
+      {
+        onSuccess: () => {
+          toast.success("User updated successfully");
+          setModalOpen(false);
+          setSelectedUsers(null);
+        },
+        onError: (error) => {
+          const data = error?.response?.data;
+
+          if (data?.field) {
+            setServerErrors({
+              [data.field]: data.message,
+            });
+          } else {
+            alert(data?.message || "Update failed");
+          }
+        },
+      }
+    );
   };
+
+  // delete
+  const deleteUserMutation = useCrudMutation({
+    mutationFn: deleteUser,
+    queryKey: ["users"],
+  });
+
   const StatusBadge = ({ status }) => {
     const map = {
       active: "bg-green-100 text-green-700",
@@ -97,6 +185,25 @@ const Users = () => {
       ))}
     </>
   );
+  const openDeleteModal = (user) => {
+    setDeleteTarget(user);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      if (!deleteTarget) return;
+      deleteUserMutation.mutate(deleteTarget._id, {
+        onSuccess: () => {
+          toast.success("User deleted successfully");
+          setDeleteOpen(false);
+          setDeleteTarget(null);
+        },
+      });
+    } catch (error) {
+      console.error("Failed to delete user", error);
+    }
+  };
 
   return (
     <Layout>
@@ -113,12 +220,6 @@ const Users = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <button
-              onClick={handleSearch}
-              className="bg-blue-600 text-white px-4 rounded py-2 ml-2 cursor-pointer"
-            >
-              Search
-            </button>
           </div>
           <div className="flex justify-between mb-4">
             <button
@@ -148,7 +249,7 @@ const Users = () => {
             </thead>
 
             <tbody>
-              {loading ? (
+              {isLoading ? (
                 <TableSkeleton rows={5} cols={6} />
               ) : users.length === 0 ? (
                 <tr>
@@ -198,7 +299,7 @@ const Users = () => {
                         </button>
 
                         <button
-                          onClick={() => handleDelete(u._id)}
+                          onClick={() => openDeleteModal(u)}
                           className="bg-red-600 text-white px-3 py-1 rounded text-sm"
                         >
                           Delete
@@ -239,6 +340,18 @@ const Users = () => {
           user={selectedUsers}
           onClose={() => setModalOpen(false)}
           onSubmit={selectedUsers ? handleUpdate : handleCreate}
+          serverErrors={serverErrors}
+        />
+        <ConfirmDeleteModal
+          isOpen={deleteOpen}
+          title="Delete Customer"
+          message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+          onCancel={() => {
+            setDeleteOpen(false);
+            setDeleteTarget(null);
+          }}
+          onConfirm={confirmDelete}
+          loading={deleting}
         />
       </div>
     </Layout>
