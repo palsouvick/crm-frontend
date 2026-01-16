@@ -18,9 +18,9 @@ export const getCampaignById = (id) => {
 }
 
 export const startCampaign = (id) => {
-  return api.put(`/campaigns/start/${id}`);
+  return api.post(`/campaigns/start/${id}`);
 }
 
-export const sendTestEmail = (id) => {
-  return api.put(`/campaigns/send-test-email/${id}`);
+export const sendTestEmail = (id, data) => {
+  return api.post(`/campaigns/send-test-email/${id}`, data);
 }

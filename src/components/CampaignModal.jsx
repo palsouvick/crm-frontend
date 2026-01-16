@@ -24,7 +24,7 @@ const CampaignModal = ({ isOpen, onClose, onCreated }) => {
 
   const leadOptions = leads.map((l) => ({
     value: l._id,
-    label: `${l.customar?.name} (${l.customar?.email})`,
+    label: `${l.customer?.name} (${l.customer?.email})`,
   }));
   const templateOptions = templates.map((t) => ({
     value: t._id,
