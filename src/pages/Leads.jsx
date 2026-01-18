@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import LeadModal from "../components/LeadModal";
-import { getLeads, createLead, updateLead, deleteLead } from "../api/leadApi";
+import { getLeads, createLead, updateLead, deleteLead, exportLeadData } from "../api/leadApi";
 import { getCustomers } from "../api/customerApi";
 import { getUsers } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
@@ -67,7 +67,7 @@ const Leads = () => {
     await getLeads();
     setModalOpen(false);
     fetchData();
-  }
+  };
 
   const handleStatusChange = async (id, status) => {
     await updateLead(id, { status });
@@ -88,6 +88,20 @@ const Leads = () => {
     </>
   );
 
+  const handleExport = async()=> {
+    try{
+      const res = await exportLeadData();
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "leads.csv";
+      a.click();
+    }catch(error){
+      console.error("Export failed", error);
+    }
+  }
+
   const confirmDelete = async () => {
     try {
       setDeleting(true);
@@ -100,19 +114,30 @@ const Leads = () => {
     } finally {
       setDeleting(false);
     }
-  }
+  };
 
   return (
     <Layout>
       <div className=" bg-white p-4 rounded shadow h-full">
         <div className="flex justify-between mb-4">
           <h1 className="text-2xl font-bold">Leads</h1>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-          >
-            + Add Lead
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={handleExport}
+              className="bg-gray-700 text-white px-4 py-2 rounded-lg mr-4"
+            >
+              Download CSV
+            </button>
+            <button
+              onClick={() => {
+                setModalOpen(true);
+                setSelectedLead(null);
+              }}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+            >
+              + Add Lead
+            </button>
+          </div>
         </div>
 
         <div className="bg-white shadow rounded overflow-x-auto">
@@ -169,12 +194,14 @@ const Leads = () => {
                       </button>
 
                       <button
-                       onClick={() => navigate(`/leads/${l._id}`)}
-                       className="bg-green-500 text-white px-3 py-1 rounded text-sm ml-2">
-                        View</button>
+                        onClick={() => navigate(`/leads/${l._id}`)}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm ml-2"
+                      >
+                        View
+                      </button>
 
                       <button
-                        onClick={() =>{
+                        onClick={() => {
                           setDeleteTarget(l);
                           setDeleteOpen(true);
                         }}

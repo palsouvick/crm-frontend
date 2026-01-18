@@ -23,3 +23,15 @@ export const totalLeads = () => {
 export const deleteLead = (id) => {
   return api.delete(`/lead/${id}`);
 }
+
+export const getLeadStatus = () => {
+  return api.get("/lead/status");
+}
+
+export const getLeadsGrowth = () => {
+  return api.get("/lead/growth");
+}
+
+export const exportLeadData = (params) =>{
+  return api.get("/lead/export", { params, responseType: "blob" });
+}

@@ -18,14 +18,26 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // 🔥 AUTO LOGOUT
+    const status = error.response?.status;
+    const url = error.config?.url;
+
+    // 🔓 Public auth routes (NO AUTO LOGOUT)
+    const publicRoutes = [
+      "/auth/login",
+      "/auth/register",
+      "/auth/forgot-password",
+      "/auth/verify-otp",
+      "/auth/reset-password",
+    ];
+
+    const isPublicRoute = publicRoutes.some((route) =>
+      url?.includes(route)
+    );
+
+    if (status === 401 && !isPublicRoute) {
+      // 🔥 AUTO LOGOUT only for protected routes
       localStorage.removeItem("token");
-
-      // Optional: remove user data
       localStorage.removeItem("user");
-
-      // Redirect to login
       window.location.href = "/login";
     }
 

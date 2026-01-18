@@ -17,3 +17,15 @@ export const fetchUserProfile = () => {
 export const updateUserProfile = (data) => {
   return api.put("/auth/profile", data);
 };
+
+export const forgotPassword = (data) => {
+    return api.post("/auth/forgot-password", data);
+};
+
+export const verifyOtp = (data) => {
+    return api.post("/auth/verify-otp", data);
+};
+
+export const changePassword = (data) => {
+  return api.put("/auth/change-password", data);
+}

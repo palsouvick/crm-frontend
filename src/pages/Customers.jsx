@@ -99,6 +99,7 @@ const Customers = () => {
   };
 
   const handleExport = async () => {
+    console.log("Exporting...");
     const res = await exportCustomerData();
     const blob = new Blob([res.data]);
     const url = window.URL.createObjectURL(blob);

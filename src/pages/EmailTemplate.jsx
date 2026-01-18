@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { deleteEmailTemplate, getEmailTemplates } from "../api/emailTemplateApi";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import EmailTemplateView from "../components/EmailTemplateView";
 
 const EmailTemplate = () => {
   const Navigate = useNavigate();
@@ -16,6 +17,8 @@ const EmailTemplate = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
 
   const fetchEmailTemplate = async () => {
     try {
@@ -25,10 +28,15 @@ const EmailTemplate = () => {
         limit,
         search,
       );
+      console.log(res.data);
       setEmailTemplate(res.data.data);
-      console.log(res.data.pagenation.totalPages);
-      setTotalPages(res.data.pagenation.totalPages);
+      setTotalPages(res.data.pagination.pages);
       setLoading(false);
+      const previewTemplate = Array.isArray(res.data.data)
+      ? res.data.data[0]
+      : res.data.data;
+      console.log("Preview template:", previewTemplate);
+      setPreviewTemplate(previewTemplate);
     } catch (error) {
       setLoading(false);
       console.error("Fecth failed", error);
@@ -126,7 +134,7 @@ const EmailTemplate = () => {
                       <button className="bg-blue-600 rounded px-3.5 py-1.5" onClick={()=> Navigate(`/email-templates/${t._id}/edit`)}>
                         Edit
                       </button>
-                      <button className="bg-indigo-500 rounded px-3.5 py-1.5" onClick={()=> Navigate(`/email-templates/${t._id}`)}>
+                      <button className="bg-indigo-500 rounded px-3.5 py-1.5" onClick={()=>{setShowPreview(true)}}>
                         View
                       </button>
                       <button
@@ -181,6 +189,13 @@ const EmailTemplate = () => {
           onConfirm={confirmDelete}
           loading={deleting}
         />
+        {/* Preview Modal */}
+              {showPreview && (
+                <EmailTemplateView
+                  template={previewTemplate}
+                  onClose={() => setShowPreview(false)}
+                />
+              )}
       </div>
     </Layout>
   );

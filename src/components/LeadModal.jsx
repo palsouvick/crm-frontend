@@ -1,8 +1,9 @@
 import { useState,useEffect } from "react";
 
 const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
-  const [form, setForm] = useState({
-    customar: "",
+    const isEditMode = Boolean(lead?._id);
+  const initialForm ={
+    customer: "",
     title: "",
     description: "",
     status: "new",
@@ -10,9 +11,10 @@ const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
     assignedTo: "",
     source: "website",
     remarks: "",
-  });
-
-  
+  };
+  const [form, setForm] = useState(initialForm);
+  console.log("lead -", lead);
+  console.log("is edit mode -", isEditMode);
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -21,30 +23,21 @@ const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
   };
   
   useEffect(() => {
-    if (lead) {
+    if (isEditMode) {
       setForm({
-        customar: lead.customar || "",
+        customer: lead.customer._id || "",
         title: lead.title || "",
         description: lead.description || "",
         status: lead.status || "new",
         expectedValue: lead.expectedValue || "",
-        assignedTo: lead.assignedTo || "",
+        assignedTo: lead.assignedTo._id || "",
         source: lead.source || "website",
         remarks: lead.remarks || "",
       });
     } else {
-      setForm({
-        customar: "",
-        title: "",
-        description: "",
-        status: "new",
-        expectedValue: "",
-        assignedTo: "",
-        source: "website",
-        remarks: "",
-      });
+       setForm(initialForm);
     }
-  }, [lead]);
+  }, [lead, isOpen]);
 if (!isOpen) return null;
 
   return (
@@ -61,9 +54,9 @@ if (!isOpen) return null;
         >
           {/* Customer */}
           <select
-            name="customar"
+            name="customer"
             className="w-full border px-3 py-2 rounded"
-            value={form.customar}
+            value={form.customer}
             onChange={handleChange}
             required
           >

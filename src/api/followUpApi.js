@@ -23,3 +23,7 @@ export const getFollowUpById = (id) => {
 export const completeFollowUp = (id) => {
     return api.put(`/follow-ups/${id}/complete`);
 }
+
+export const totalFollowUps = () => {
+    return api.get("/follow-ups/count");
+}

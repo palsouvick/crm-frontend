@@ -20,6 +20,8 @@
     "@tanstack/react-query": "^5.90.16",
     "axios": "^1.13.2",
     "jodit-react": "^5.2.38",
+    "lucide-react": "^0.562.0",
+    "multer": "^2.0.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
