@@ -19,6 +19,8 @@ import EmailTemplateView from "../components/EmailTemplateView";
 import CampaignView from "../pages/CampaignView";
 import FollowUpCreate from "../pages/FollowUpCreate";
 import ForgotPassword from "../components/ForgotPassword";
+import Company from "../pages/Company";
+import CompanyCreate from "../pages/CompanyCreate";
 
 const AppRoutes = () => {
   return (
@@ -50,6 +52,9 @@ const AppRoutes = () => {
             element={<EmailTemplateEdit />}
           />
           <Route path="/campaigns/:id" element={<CampaignView />} />
+          <Route path="/company" element={<Company />} />
+          <Route path="/company/create" element={<CompanyCreate />} />
+          <Route path="*" element={<h1>404 Not Found</h1>} />
         </Route>
       </Routes>
     </Router>

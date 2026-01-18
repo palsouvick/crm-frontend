@@ -35,6 +35,9 @@ const Sidebar = () => {
             👥 Users
           </NavLink>
         )}
+        <NavLink to="/company" className={linkClass}>
+          🏢 Company
+        </NavLink>
         <NavLink to="/campaigns" className={linkClass}>
           🎯 Campaigns
         </NavLink>

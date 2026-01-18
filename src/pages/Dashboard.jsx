@@ -4,6 +4,7 @@ import StatCard from "../components/StatCard";
 import { totalCustomer } from "../api/customerApi";
 import { totalLeads, getLeadsGrowth, getLeadStatus } from "../api/leadApi";
 import { totalFollowUps } from "../api/followUpApi";
+import {totalActivities} from "../api/activityApi"
 import { promise } from "zod";
 import {
   LineChart,
@@ -30,18 +31,20 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [res, res2, res3, growthRes, statusRes] = await Promise.all([
+      const [res, res2, res3, growthRes, statusRes, active] = await Promise.all([
         totalCustomer(),
         totalLeads(),
         totalFollowUps(),
         getLeadsGrowth(),
         getLeadStatus(),
+        totalActivities()
       ]);
       setCustomer(res.data.total);
       setLead(res2.data.total);
       setFollowUp(res3.data.total);
       setLeadsGrowth(growthRes.data);
       setLeadStatus(statusRes.data);
+      setActivity(active.data.total);
       setLoading(false);
     } catch (error) {
       console.error("Failed to fetch leads or customers", error);
@@ -98,7 +101,7 @@ const Dashboard = () => {
 
         <StatCard
           title="Activity Logs"
-          value="—"
+          value={activity}
           icon="📝"
           color="bg-purple-500"
         />
