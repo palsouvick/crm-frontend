@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Building2,
   Plus,
+  ArrowLeft,
   Search,
   Filter,
   MoreVertical,
@@ -28,6 +29,8 @@ import Layout from "../components/Layout";
 import { createCompany } from "../api/companyApi";
 import { getUsers } from "../api/userApi";
 import Select from "react-select";
+import { Link } from "react-router-dom";
+
 
 const CompanyCreate = () => {
   const [formData, setFormData] = useState({
@@ -120,6 +123,13 @@ const CompanyCreate = () => {
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-2xl font-bold">Add New Company</h2>
+          <Link
+            to="/company"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Companies
+          </Link>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
@@ -228,9 +238,6 @@ const CompanyCreate = () => {
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="lead">Lead</option>
-                <option value="customer">Customer</option>
-                <option value="prospect">Prospect</option>
               </select>
             </div>
 

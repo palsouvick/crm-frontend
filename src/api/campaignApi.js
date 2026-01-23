@@ -1,7 +1,7 @@
 import api from "./axios";
 
-export const getCampaigns = () => {
-  return api.get("/campaigns");
+export const getCampaigns = (params) => {
+  return api.get("/campaigns", { params });
 };
 
 export const createCampaign = (data) => {

@@ -21,6 +21,8 @@ import FollowUpCreate from "../pages/FollowUpCreate";
 import ForgotPassword from "../components/ForgotPassword";
 import Company from "../pages/Company";
 import CompanyCreate from "../pages/CompanyCreate";
+import CompanyEdit from "../pages/CompanyEdit";
+import CompanyView from "../pages/CompanyView";
 
 const AppRoutes = () => {
   return (
@@ -54,6 +56,8 @@ const AppRoutes = () => {
           <Route path="/campaigns/:id" element={<CampaignView />} />
           <Route path="/company" element={<Company />} />
           <Route path="/company/create" element={<CompanyCreate />} />
+          <Route path="/company/:id/edit" element={<CompanyEdit />} />
+          <Route path="/company/:id" element={<CompanyView />} />
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Route>
       </Routes>

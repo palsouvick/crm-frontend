@@ -1,7 +1,7 @@
 import api from "./axios";
 
-export const getCompanies = () => {
-    return api.get("/company");
+export const getCompanies = (params) => {
+    return api.get("/company", { params });
 };
 
 export const getCompanyById = (id) => {
