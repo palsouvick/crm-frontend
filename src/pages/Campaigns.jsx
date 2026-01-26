@@ -28,6 +28,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import EmptyState from "../components/EmptyState";
+import PageHeader from "../components/PageHeader";
 
 const Campaigns = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -82,23 +83,13 @@ const Campaigns = () => {
       <div className=" min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <Megaphone className="w-8 h-8 text-indigo-600" />
-                  Campaigns
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Manage your campaigns database
-                </p>
-              </div>
-              <button
-                onClick={() => setOpen(true)}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
-              >
-                <Plus className="w-5 h-5" />+ Create Campaign
-              </button>
-            </div>
+            <PageHeader
+              icon={<Megaphone className="w-8 h-8 text-indigo-600" />}
+              title="Campaigns"
+              subtitle="Manage your campaigns database"
+              primaryActionText="+ Create Campaign"
+              onPrimaryAction={() => setOpen(true)}
+            />
 
             {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow p-4">
@@ -187,7 +178,7 @@ const Campaigns = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created At
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
@@ -212,24 +203,34 @@ const Campaigns = () => {
                 ) : (
                   campaigns.map((c) => (
                     <tr key={c._id} className="hover:bg-gray-50">
-                      <td className="p-3">{c.name}</td>
-                      <td className="p-3">{c.type}</td>
-                      <td className="pl-8">{c.emailTemplate.name}</td>
-                      <td className="pl-8">{c.isScheduled ? "✅" : "❌"}</td>
-                      <td className="pl-6 capitalize">{c.status}</td>
-                      <td className="pl-8">
+                      <td className="px-3 py-4">{c.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500 capitalize">
+                        {c.type}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {c.emailTemplate.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {c.isScheduled ? "✅" : "❌"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 capitalize">
+                        {c.status}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(c.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="p-3">
-                        <button className="bg-blue-600 px-3 py-1.5 rounded mr-1.5">
-                          Edit
-                        </button>
-                        <button
-                          className="bg-indigo-600 px-3 py-1.5 rounded mr-1.5"
-                          onClick={() => navigate(`/campaigns/${c._id}`)}
-                        >
-                          view
-                        </button>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex justify-end gap-2">
+                          <button className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
+                            onClick={() => navigate(`/campaigns/${c._id}`)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

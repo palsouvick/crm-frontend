@@ -373,37 +373,36 @@ const Users = () => {
                         {u.name}
                       </td>
 
-                      <td className="px-3 py-4 text-gray-600">
+                      <td className="px-3 py-4 text-sm text-gray-500">
                         {u.phone || "—"}
                       </td>
 
-                      <td className="px-3 py-4 text-gray-600">{u.email}</td>
-
+                      <td className="px-3 py-4 text-sm text-gray-500">{u.email}</td>
                       <td className="px-3 py-4">
                         <StatusBadge status={u.status} />
                       </td>
 
-                      <td className="px-3 py-4">
+                      <td className="px-3 py-4 text-sm text-gray-500">
                         <RoleBadge role={u.role} />
                       </td>
 
-                      <td className="px-3 py-4 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => {
                               setSelectedUsers(u);
                               setModalOpen(true);
                             }}
-                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+                            className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
                           >
-                            Edit
+                            <Edit className="w-4 h-4" />
                           </button>
 
                           <button
                             onClick={() => openDeleteModal(u)}
-                            className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                            className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
                           >
-                            Delete
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
