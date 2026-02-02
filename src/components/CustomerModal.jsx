@@ -8,7 +8,7 @@ const CustomerModal = ({ isOpen, onClose, onSubmit, customer, users = [] }) => {
     company: "",
     status: "active",
     assignedTo: "",
-    notes: ""
+    notes: "",
   });
   const [errors, setErrors] = useState({});
   const validate = () => {
@@ -21,12 +21,12 @@ const CustomerModal = ({ isOpen, onClose, onSubmit, customer, users = [] }) => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-   const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-   useEffect(() => {
+  useEffect(() => {
     if (customer) {
       setForm({
         name: customer.name || "",
@@ -35,7 +35,17 @@ const CustomerModal = ({ isOpen, onClose, onSubmit, customer, users = [] }) => {
         company: customer.company || "",
         status: customer.status || "active",
         assignedTo: customer.assignedTo?._id || "",
-        notes: customer.notes || ""
+        notes: customer.notes || "",
+      });
+    } else {
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        company: "",
+        status: "active",
+        assignedTo: "",
+        notes: "",
       });
     }
   }, [customer]);
@@ -54,10 +64,7 @@ const CustomerModal = ({ isOpen, onClose, onSubmit, customer, users = [] }) => {
           {customer ? "Edit Customer" : "Add Customer"}
         </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-3"
-        >
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <input
               name="name"
@@ -66,37 +73,45 @@ const CustomerModal = ({ isOpen, onClose, onSubmit, customer, users = [] }) => {
               value={form.name}
               onChange={handleChange}
             />
-            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name}</p>
+            )}
           </div>
           <div>
             <input
-                name="email"
-                placeholder="Email"
-                className="w-full border px-3 py-2 rounded"
-                value={form.email || ""}
-                onChange={handleChange}
+              name="email"
+              placeholder="Email"
+              className="w-full border px-3 py-2 rounded"
+              value={form.email || ""}
+              onChange={handleChange}
             />
-            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
           <div>
             <input
-                name="phone"
-                placeholder="Phone"
-                className="w-full border px-3 py-2 rounded"
-                value={form.phone}
-                onChange={handleChange}
+              name="phone"
+              placeholder="Phone"
+              className="w-full border px-3 py-2 rounded"
+              value={form.phone}
+              onChange={handleChange}
             />
-            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+            {errors.phone && (
+              <p className="text-red-500 text-sm">{errors.phone}</p>
+            )}
           </div>
           <div>
-          <input
-            name="company"
-            placeholder="Company"
-            className="w-full border px-3 py-2 rounded"
-            value={form.company || ""}
-            onChange={(e) => setForm({ ...form, company: e.target.value })}
-          />
-            {errors.company && <p className="text-red-500 text-sm">{errors.company}</p>}
+            <input
+              name="company"
+              placeholder="Company"
+              className="w-full border px-3 py-2 rounded"
+              value={form.company || ""}
+              onChange={(e) => setForm({ ...form, company: e.target.value })}
+            />
+            {errors.company && (
+              <p className="text-red-500 text-sm">{errors.company}</p>
+            )}
           </div>
           {/* Status */}
           <select
@@ -108,7 +123,7 @@ const CustomerModal = ({ isOpen, onClose, onSubmit, customer, users = [] }) => {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-           {/* Assigned To */}
+          {/* Assigned To */}
           <select
             name="assignedTo"
             className="w-full border px-3 py-2 rounded"

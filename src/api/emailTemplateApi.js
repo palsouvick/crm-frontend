@@ -1,7 +1,7 @@
 import api from "./axios";
 
-export const getEmailTemplates = () => {
-  return api.get("/email-templates");
+export const getEmailTemplates = (data) => {
+  return api.get("/email-templates", { params: data });
 }
 
 export const createEmailTemplate = (data) => {

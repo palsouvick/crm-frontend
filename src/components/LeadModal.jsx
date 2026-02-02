@@ -1,7 +1,7 @@
 import { useState,useEffect } from "react";
 
 const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
-    const isEditMode = Boolean(lead?._id);
+  const isEditMode = Boolean(lead?._id);
   const initialForm ={
     customer: "",
     title: "",
@@ -30,7 +30,7 @@ const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
         description: lead.description || "",
         status: lead.status || "new",
         expectedValue: lead.expectedValue || "",
-        assignedTo: lead.assignedTo._id || "",
+        assignedTo: lead?.assignedTo?._id || "",
         source: lead.source || "website",
         remarks: lead.remarks || "",
       });

@@ -13,6 +13,7 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import EmptyState from "../components/EmptyState";
 import {
   Megaphone,
+  UserCheck,
   UsersIcon,
   Building2,
   Plus,
@@ -153,7 +154,7 @@ const Customers = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <UserCircle className="w-8 h-8 text-indigo-600" />
+                  <UserCheck className="w-8 h-8 text-indigo-600" />
                   Customers
                 </h1>
                 <p className="text-gray-600 mt-1">
@@ -280,9 +281,9 @@ const Customers = () => {
                       <div className="h-56 flex flex-col items-center justify-center text-gray-500">
                         <EmptyState
                           icon="🗂️"
-                          title="No Follow-Ups Yet"
+                          title="No Customers Yet"
                           description="You haven’t added any customer. Start by creating one."
-                          actionText="+ Add First Follow-Up"
+                          actionText="+ Add First Customer"
                           onAction={() => setOpen(true)}
                         />
                       </div>
