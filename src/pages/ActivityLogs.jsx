@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { getActivities } from "../api/activityApi";
@@ -74,7 +73,7 @@ const ActivityLogs = () => {
   );
 
   return (
-    <Layout>
+    <>
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
@@ -149,7 +148,7 @@ const ActivityLogs = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

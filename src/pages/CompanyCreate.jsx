@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import { createCompany } from "../api/companyApi";
 import { getUsers } from "../api/userApi";
 import Select from "react-select";
@@ -119,7 +118,7 @@ const CompanyCreate = () => {
   };
 
   return (
-    <Layout>
+    <>
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-2xl font-bold">Add New Company</h2>
@@ -391,7 +390,7 @@ const CompanyCreate = () => {
           </button>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

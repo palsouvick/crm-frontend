@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
 import { createFollowUp } from "../api/followUpApi";
 import { getCustomers } from "../api/customerApi";
@@ -80,7 +79,7 @@ const FollowUpCreate = () => {
   };
 
   return (
-    <Layout>
+    <>
       <div className="w-full bg-white p-6 rounded shadow ">
         {/* 🔹 BASIC INFO */}
         <div
@@ -251,7 +250,7 @@ const FollowUpCreate = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

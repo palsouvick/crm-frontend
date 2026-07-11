@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import { getCampaigns } from "../api/campaignApi";
 import CampaignModal from "../components/CampaignModal";
 import { useNavigate } from "react-router-dom";
@@ -79,7 +78,7 @@ const Campaigns = () => {
     </>
   );
   return (
-    <Layout>
+    <>
       <div className=" min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
@@ -264,7 +263,7 @@ const Campaigns = () => {
         onClose={() => setOpen(false)}
         onCreated={fetchCampaign}
       />
-    </Layout>
+    </>
   );
 };
 

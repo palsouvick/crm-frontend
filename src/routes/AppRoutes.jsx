@@ -18,7 +18,7 @@ import EmailTemplateEdit from "../pages/EmailTemplateEdit";
 import EmailTemplateView from "../components/EmailTemplateView";
 import CampaignView from "../pages/CampaignView";
 import FollowUpCreate from "../pages/FollowUpCreate";
-import ForgotPassword from "../components/ForgotPassword";
+import ForgotPassword from "../auth/ForgotPassword";
 import Company from "../pages/Company";
 import CompanyCreate from "../pages/CompanyCreate";
 import CompanyEdit from "../pages/CompanyEdit";

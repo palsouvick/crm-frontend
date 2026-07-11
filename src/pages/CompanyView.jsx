@@ -1,5 +1,4 @@
 import React from "react";
-import Layout from "../components/Layout";
 import { useParams } from "react-router-dom";
 import { getCompanyById } from "../api/companyApi";
 import {
@@ -47,7 +46,7 @@ const CompanyView = () => {
     fetchCompany();
   }, [id]);
   return (
-    <Layout>
+    <>
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="p-6 border-b flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -176,7 +175,7 @@ const CompanyView = () => {
           </>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

@@ -1,142 +1,172 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { registerUser } from "../api/authApi";
+import { registerSchema } from "../lib/validation/authSchemas";
+import AuthLayout from "./AuthLayout";
+import PasswordInput from "../components/ui/PasswordInput";
+import FieldError from "../components/ui/FieldError";
 import logo from "../assets/download.svg";
 
 const Register = () => {
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    mode: "onBlur",
   });
 
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  const onSubmit = async (data) => {
+    setServerError("");
     setSuccess("");
-
     try {
-      await registerUser(form);
+      await registerUser(data);
       setSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setServerError(err.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+    <AuthLayout
+      heading="Join FlowCRM 🚀"
+      description="Create your account and start managing leads, customers, and sales in one powerful platform."
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <img src={logo} alt="FlowCRM" className="w-8" />
+        <h2 className="text-2xl font-bold">Create Account</h2>
+      </div>
 
-      {/* LEFT BRAND PANEL */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-indigo-600 to-indigo-500 text-white">
+      <p className="text-gray-500 mb-6">Fill in the details below to get started</p>
+
+      <AnimatePresence>
+        {serverError && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            role="alert"
+            className="mb-4 text-red-600 text-sm bg-red-50 p-2 rounded"
+          >
+            {serverError}
+          </motion.div>
+        )}
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            role="status"
+            className="mb-4 text-green-600 text-sm bg-green-50 p-2 rounded"
+          >
+            {success}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <div>
-          <img src={logo} alt="FlowCRM" className="w-12 mb-6" />
-          <h1 className="text-4xl font-bold mb-4">
-            Join FlowCRM 🚀
-          </h1>
-          <p className="text-indigo-100 max-w-md">
-            Create your account and start managing leads, customers, and sales in one powerful platform.
-          </p>
+          <label htmlFor="name" className="sr-only">
+            Full name
+          </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Full name"
+            autoComplete="name"
+            aria-invalid={!!errors.name}
+            className={`w-full px-4 py-3 border rounded-lg outline-none transition focus:ring-2 ${
+              errors.name
+                ? "border-red-400 focus:ring-red-400"
+                : "border-gray-300 focus:ring-indigo-500"
+            }`}
+            {...register("name")}
+          />
+          <FieldError message={errors.name?.message} />
         </div>
 
-        <p className="text-sm text-indigo-200">
-          © {new Date().getFullYear()} FlowCRM. All rights reserved.
-        </p>
-      </div>
-
-      {/* RIGHT REGISTER FORM */}
-      <div className="flex items-center justify-center px-6">
-        <div className="w-full max-w-md">
-
-          <div className="flex items-center gap-3 mb-6">
-            <img src={logo} alt="FlowCRM" className="w-8" />
-            <h2 className="text-2xl font-bold">Create Account</h2>
-          </div>
-
-          <p className="text-gray-500 mb-6">
-            Fill in the details below to get started
-          </p>
-
-          {error && (
-            <div className="mb-4 text-red-600 text-sm bg-red-50 p-2 rounded">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-4 text-green-600 text-sm bg-green-50 p-2 rounded">
-              {success}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            <input
-              name="name"
-              type="text"
-              placeholder="Full name"
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              name="email"
-              type="email"
-              placeholder="Email address"
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              name="phone"
-              type="text"
-              placeholder="Phone number"
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              onChange={handleChange}
-            />
-
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              onChange={handleChange}
-              required
-            />
-
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition"
-            >
-              Create Account
-            </button>
-          </form>
-
-          <div className="text-sm text-center mt-6">
-            Already have an account?{" "}
-            <Link to="/login" className="text-indigo-600 font-medium">
-              Log in
-            </Link>
-          </div>
-
+        <div>
+          <label htmlFor="email" className="sr-only">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            placeholder="Email address"
+            autoComplete="email"
+            aria-invalid={!!errors.email}
+            className={`w-full px-4 py-3 border rounded-lg outline-none transition focus:ring-2 ${
+              errors.email
+                ? "border-red-400 focus:ring-red-400"
+                : "border-gray-300 focus:ring-indigo-500"
+            }`}
+            {...register("email")}
+          />
+          <FieldError message={errors.email?.message} />
         </div>
+
+        <div>
+          <label htmlFor="phone" className="sr-only">
+            Phone number
+          </label>
+          <input
+            id="phone"
+            type="text"
+            placeholder="Phone number"
+            autoComplete="tel"
+            aria-invalid={!!errors.phone}
+            className={`w-full px-4 py-3 border rounded-lg outline-none transition focus:ring-2 ${
+              errors.phone
+                ? "border-red-400 focus:ring-red-400"
+                : "border-gray-300 focus:ring-indigo-500"
+            }`}
+            {...register("phone")}
+          />
+          <FieldError message={errors.phone?.message} />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="sr-only">
+            Password
+          </label>
+          <PasswordInput
+            id="password"
+            placeholder="Password"
+            autoComplete="new-password"
+            aria-invalid={!!errors.password}
+            error={!!errors.password}
+            {...register("password")}
+          />
+          <FieldError message={errors.password?.message} />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition disabled:bg-indigo-400 disabled:cursor-not-allowed"
+        >
+          {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isSubmitting ? "Creating account..." : "Create Account"}
+        </button>
+      </form>
+
+      <div className="text-sm text-center mt-6">
+        Already have an account?{" "}
+        <Link to="/login" className="text-indigo-600 font-medium">
+          Log in
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

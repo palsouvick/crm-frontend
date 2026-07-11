@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import { useParams } from "react-router-dom";
 import {
   getCampaignById,
@@ -104,13 +103,11 @@ const CampaignView = () => {
   // ✅ ADD THIS HERE
   if (!campaign) {
     return (
-      <Layout>
-        <div className="p-6 text-gray-500 text-center">Loading campaign...</div>
-      </Layout>
+      <div className="p-6 text-gray-500 text-center">Loading campaign...</div>
     );
   }
   return (
-    <Layout>
+    <>
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -356,7 +353,7 @@ const CampaignView = () => {
           loading={sendingTest}
         />
       </div>
-    </Layout>
+    </>
   );
 };
 

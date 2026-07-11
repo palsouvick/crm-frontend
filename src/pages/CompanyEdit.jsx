@@ -1,6 +1,5 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import Layout from "../components/Layout";
 import Select from "react-select";
 import {
   Building2,
@@ -139,7 +138,7 @@ const CompanyEdit = () => {
     }
   };
   return (
-    <Layout>
+    <>
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-2xl font-bold">Edit Company</h2>
@@ -420,7 +419,7 @@ const CompanyEdit = () => {
           </>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

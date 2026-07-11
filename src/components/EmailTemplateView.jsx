@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Layout from "./Layout";
 import { getEmailTemplateById } from "../api/emailTemplateApi";
 import {
   Upload,

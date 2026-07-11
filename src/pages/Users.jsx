@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Layout from "../components/Layout";
 import { createUser, getUsers, updateUser, deleteUser } from "../api/userApi";
 import UserModal from "../components/UserModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -236,7 +235,7 @@ const Users = () => {
   };
 
   return (
-    <Layout>
+    <>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
@@ -456,7 +455,7 @@ const Users = () => {
         onConfirm={confirmDelete}
         loading={deleting}
       />
-    </Layout>
+    </>
   );
 };
 

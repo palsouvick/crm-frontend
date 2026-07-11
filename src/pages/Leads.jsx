@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import LeadModal from "../components/LeadModal";
 import {
   getLeads,
@@ -156,7 +155,7 @@ const Leads = () => {
   };
 
   return (
-    <Layout>
+    <>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
@@ -379,7 +378,7 @@ const Leads = () => {
           />
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

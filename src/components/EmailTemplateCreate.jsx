@@ -1,5 +1,4 @@
 import React from "react";
-import Layout from "./Layout";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 import { createEmailTemplate } from "../api/emailTemplateApi";
@@ -124,7 +123,7 @@ const EmailTemplateCreate = () => {
     }
   };
   return (
-    <Layout>
+    <>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow">
           {/* Header */}
@@ -405,7 +404,7 @@ const EmailTemplateCreate = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

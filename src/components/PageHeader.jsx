@@ -1,42 +1,51 @@
-import React from "react";
+import Button from "./ui/Button";
 
 const PageHeader = ({
   icon,
   title,
   subtitle,
+  breadcrumbs,
   primaryActionText,
   onPrimaryAction,
   secondaryActionText,
   onSecondaryAction,
+  actions,
 }) => {
   return (
     <div className="mb-6">
+      {breadcrumbs && (
+        <nav className="flex items-center gap-2 text-caption text-ink-subtle mb-2">
+          {breadcrumbs.map((crumb, i) => (
+            <span key={i} className="flex items-center gap-2">
+              {i > 0 && <span>/</span>}
+              {crumb}
+            </span>
+          ))}
+        </nav>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-h2 font-bold text-ink flex items-center gap-2">
             {icon}
             {title}
           </h1>
-          {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-body text-ink-muted mt-1">{subtitle}</p>}
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          {actions}
+
           {secondaryActionText && (
-            <button
-              onClick={onSecondaryAction}
-              className="bg-gray-700 text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 font-medium"
-            >
+            <Button variant="secondary" onClick={onSecondaryAction}>
               {secondaryActionText}
-            </button>
+            </Button>
           )}
 
           {primaryActionText && (
-            <button
-              onClick={onPrimaryAction}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
-            >
+            <Button variant="primary" onClick={onPrimaryAction}>
               {primaryActionText}
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import { getLeadById } from "../api/leadApi";
 
 const LeadView = () => {
@@ -30,7 +29,7 @@ const LeadView = () => {
   }, [id]);
 
   return (
-    <Layout>
+    <>
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -126,7 +125,7 @@ const LeadView = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
 };
 

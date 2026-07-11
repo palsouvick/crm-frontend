@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import { Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -102,7 +101,7 @@ const EmailTemplate = () => {
     }
   };
   return (
-    <Layout>
+    <>
       <div className=" bg-white p-4 rounded shadow h-full">
         <div className="max-w-7xl mx-auto">
           {/* <h1 className="text-2xl font-bold mb-4">Email Templates</h1>
@@ -328,7 +327,7 @@ const EmailTemplate = () => {
           )}
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import StatCard from "../components/StatCard";
 import { totalCustomer } from "../api/customerApi";
 import { totalLeads, getLeadsGrowth, getLeadStatus } from "../api/leadApi";
@@ -67,7 +66,7 @@ const Dashboard = () => {
   };
 
   return (
-    <Layout>
+    <>
       {/* PAGE HEADER */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
@@ -205,7 +204,7 @@ const Dashboard = () => {
           </li>
         </ul>
       </div>
-    </Layout>
+    </>
   );
 };
 

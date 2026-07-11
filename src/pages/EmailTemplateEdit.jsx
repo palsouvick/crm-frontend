@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Layout from "../components/Layout";
 import JoditEditor from "jodit-react";
 import {
   getEmailTemplateById,
@@ -214,7 +213,7 @@ const EmailTemplateEdit = () => {
   }
 
   return (
-    <Layout>
+    <>
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow">
             {/* Header */}
@@ -523,7 +522,7 @@ const EmailTemplateEdit = () => {
             onClose={() => setShowPreview(false)}
           />
         )}
-    </Layout>
+    </>
   );
 };
 

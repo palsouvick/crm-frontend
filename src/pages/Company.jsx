@@ -23,7 +23,6 @@ import {
   Briefcase,
 } from "lucide-react";
 import { getCompanies, deleteCompany } from "../api/companyApi";
-import Layout from "../components/Layout";
 import CompanyFormModal from "../components/CompanyFormModal";
 import { useNavigate } from "react-router-dom";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -99,7 +98,7 @@ const Company = () => {
   };
 
   return (
-    <Layout>
+    <>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -376,7 +375,7 @@ const Company = () => {
         onConfirm={confirmDelete}
         loading={deleting}
       />
-    </Layout>
+    </>
   );
 };
 

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Layout from "../components/Layout";
 import { fetchUserProfile } from "../api/authApi";
 
 const Profile = () => {
@@ -24,7 +23,7 @@ const Profile = () => {
   }, []);
 
   return (
-    <Layout>
+    <>
       {/* PAGE HEADER */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">
@@ -92,7 +91,7 @@ const Profile = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
 };
 

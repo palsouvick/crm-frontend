@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Layout from "../components/Layout";
 import { Link } from "react-router-dom";
 import { getFollowUps, deleteFollowUp } from "../api/followUpApi";
 import { useNavigate } from "react-router-dom";
@@ -105,7 +104,7 @@ const FollowUp = () => {
     </>
   );
   return (
-    <Layout>
+    <>
       <div className="bg-white p-4 rounded shadow h-full">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
@@ -346,7 +345,7 @@ const FollowUp = () => {
           onSuccess={fetchFollowUps}
         />
       )} */}
-    </Layout>
+    </>
   );
 };
 
