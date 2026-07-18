@@ -1,210 +1,94 @@
-import { useEffect, useState } from "react";
-import StatCard from "../components/StatCard";
-import { totalCustomer } from "../api/customerApi";
-import { totalLeads, getLeadsGrowth, getLeadStatus } from "../api/leadApi";
-import { totalFollowUps } from "../api/followUpApi";
-import {totalActivities} from "../api/activityApi"
-import { promise } from "zod";
-import {
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { useNavigate } from "react-router-dom";
+import Section from "../components/Section";
+import Button from "../components/ui/Button";
+import { getUser } from "../utils/auth";
+import { useDashboardSummary } from "../hooks/useDashboard";
+import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
+import DashboardEmptyState from "../components/dashboard/DashboardEmptyState";
+import DashboardHero from "../components/dashboard/DashboardHero";
+import SalesPipeline from "../components/dashboard/SalesPipeline";
+import QuickActions from "../components/dashboard/QuickActions";
+import StatsGrid from "../components/dashboard/StatsGrid";
+import LeadGrowthChart from "../components/dashboard/LeadGrowthChart";
+import LeadStatusChart from "../components/dashboard/LeadStatusChart";
+
+const CARD_CLICK_ROUTE = {
+  customers: "/customers",
+  leads: "/leads",
+  qualified: "/leads",
+  won: "/leads",
+  followUps: "/follow-up",
+  conversion: "/leads",
+};
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [leadsGrowth, setLeadsGrowth] = useState([]);
-  const [leadStatus, setLeadStatus] = useState([]);
-  const [customer, setCustomer] = useState(0);
-  const [lead, setLead] = useState(0);
-  const [followUp, setFollowUp] = useState(0);
-  const [activity, setActivity] = useState(0);
+  const navigate = useNavigate();
+  const user = getUser();
+  const { data: summary, isLoading, isError, refetch } = useDashboardSummary();
 
-  const fetchData = async () => {
-    try {
-      const [res, res2, res3, growthRes, statusRes, active] = await Promise.all([
-        totalCustomer(),
-        totalLeads(),
-        totalFollowUps(),
-        getLeadsGrowth(),
-        getLeadStatus(),
-        totalActivities()
-      ]);
-      setCustomer(res.data.total);
-      setLead(res2.data.total);
-      setFollowUp(res3.data.total);
-      setLeadsGrowth(growthRes.data);
-      setLeadStatus(statusRes.data);
-      setActivity(active.data.total);
-      setLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch leads or customers", error);
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchData();
-  }, []);
-  const CustomPieTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border">
-          <p className="font-semibold">{payload[0].name}</p>
-          <p className="text-sm text-gray-600">{payload[0].value} leads</p>
-        </div>
-      );
-    }
-    return null;
-  };
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
+        <p className="text-body text-ink-muted">
+          We couldn't load your dashboard right now.
+        </p>
+        <Button variant="outline" onClick={() => refetch()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  const isNewTenant =
+    summary.customers.total === 0 &&
+    summary.leads.total === 0 &&
+    summary.activities.total === 0;
+
+  if (isNewTenant) {
+    return <DashboardEmptyState />;
+  }
 
   return (
-    <>
-      {/* PAGE HEADER */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-500 text-sm">
-          Overview of your CRM performance
-        </p>
-      </div>
-
-      {/* STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Customers"
-          value={customer}
-          icon="🧑"
-          color="bg-indigo-600"
-        />
-
-        <StatCard
-          title="Total Leads"
-          value={lead}
-          icon="📋"
-          color="bg-emerald-500"
-        />
-
-        <StatCard
-          title="Follow Ups"
-          value={followUp}
-          icon="⏰"
-          color="bg-orange-500"
-        />
-
-        <StatCard
-          title="Activity Logs"
-          value={activity}
-          icon="📝"
-          color="bg-purple-500"
-        />
-      </div>
-
-      {/* CHARTS SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* LEADS CHART */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-          <h2 className="font-semibold mb-4 text-gray-800">Leads Growth</h2>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center">
-              Loading...
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={leadsGrowth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#888" />
-                <YAxis stroke="#888" />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="leads"
-                  stroke="#6366f1"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
+    <div className="space-y-8">
+      <Section>
+        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
+          <div className="md:col-span-6 lg:col-span-8">
+            <DashboardHero
+              userName={user?.name}
+              followUpsCount={summary.followUps.total}
+              leadsCount={summary.leads.total}
+            />
+          </div>
+          <div className="md:col-span-6 lg:col-span-4">
+            <SalesPipeline leadStatus={summary.leadStatus} />
+          </div>
         </div>
+      </Section>
 
-        {/* STATUS PIE */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="font-semibold mb-4 text-gray-800">Lead Status</h2>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center">
-              Loading...
-            </div>
-          ) : (
-            <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={leadStatus}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {leadStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomPieTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 space-y-2">
-                {leadStatus.map((status, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: status.color }}
-                      />
-                      <span className="text-gray-600">{status.name}</span>
-                    </div>
-                    <span className="font-semibold">{status.value}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+      <QuickActions />
+
+      <Section title="Business Metrics">
+        <StatsGrid
+          summary={summary}
+          onCardClick={(key) => navigate(CARD_CLICK_ROUTE[key] ?? "/")}
+        />
+      </Section>
+
+      <Section title="Analytics">
+        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
+          <div className="md:col-span-6 lg:col-span-8">
+            <LeadGrowthChart data={summary.leadsGrowth} />
+          </div>
+          <div className="md:col-span-6 lg:col-span-4">
+            <LeadStatusChart data={summary.leadStatus} />
+          </div>
         </div>
-      </div>
-
-      {/* RECENT ACTIVITY */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="font-semibold mb-4 text-gray-800">Recent Activities</h2>
-
-        <ul className="space-y-3 text-sm">
-          <li className="flex justify-between">
-            <span className="text-gray-600">New lead added</span>
-            <span className="text-gray-400">2 mins ago</span>
-          </li>
-
-          <li className="flex justify-between">
-            <span className="text-gray-600">Customer profile updated</span>
-            <span className="text-gray-400">1 hour ago</span>
-          </li>
-
-          <li className="flex justify-between">
-            <span className="text-gray-600">Follow-up scheduled</span>
-            <span className="text-gray-400">Today</span>
-          </li>
-        </ul>
-      </div>
-    </>
+      </Section>
+    </div>
   );
 };
 

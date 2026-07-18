@@ -237,6 +237,9 @@ const CompanyCreate = () => {
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
+                <option value="lead">Lead</option>
+                <option value="customer">Customer</option>
+                <option value="prospect">Prospect</option>
               </select>
             </div>
 

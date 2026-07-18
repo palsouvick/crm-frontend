@@ -1,461 +1,372 @@
-import { useState, useEffect } from "react";
-import { createUser, getUsers, updateUser, deleteUser } from "../api/userApi";
-import UserModal from "../components/UserModal";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import useCrudMutation from "../hooks/useCrudMutation";
-import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Plus } from "lucide-react";
+import PageHeader from "../components/PageHeader";
+import Button from "../components/ui/Button";
+import UserSummaryCards from "../components/users/UserSummaryCards";
+import UserFiltersBar from "../components/users/UserFiltersBar";
+import BulkActionsBar from "../components/users/BulkActionsBar";
+import UsersTable from "../components/users/UsersTable";
+import Pagination from "../components/ui/Pagination";
+import UserModal from "../components/UserModal";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import ResetPasswordModal from "../components/users/ResetPasswordModal";
+import AssignRoleModal from "../components/users/AssignRoleModal";
+import ImportUsersModal from "../components/users/ImportUsersModal";
+import { exportUserData } from "../api/userApi";
 import {
-  Megaphone,
-  UsersIcon,
-  Building2,
-  Plus,
-  Search,
-  Filter,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Eye,
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  DollarSign,
-  Calendar,
-  Tag,
-  X,
-  Upload,
-  ChevronDown,
-  ChevronUp,
-  Briefcase,
-} from "lucide-react";
+  useUsersList,
+  useUserFilterOptions,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useResetUserPassword,
+  useBulkUpdateUserStatus,
+  useBulkDeleteUsers,
+  useImportUsers,
+} from "../hooks/useUsers";
+
+const INITIAL_FILTERS = {
+  search: "",
+  role: "",
+  status: "",
+  department: "",
+  designation: "",
+  dateFrom: "",
+  dateTo: "",
+};
+
+const downloadCsv = (blobData, filename) => {
+  const blob = new Blob([blobData]);
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
 
 const Users = () => {
-  // const [users, setUsers] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState(null);
+  const navigate = useNavigate();
+
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const queryClient = useQueryClient();
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [serverErrors, setServerErrors] = useState(null);
+
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [serverErrors, setServerErrors] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  // const fetchUsers = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await getUsers({
-  //       page,
-  //       limit: 5,
-  //       search,
-  //     });
-  //     setUsers(res.data.data);
-  //     setTotalPages(res.data.pagination.totalPages);
-  //   } catch (error) {
-  //     console.error("Failed to fetch users", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // const handleSearch = () => {
-  //   setPage(1);
-  //   fetchUsers();
-  // };
-  // useEffect(() => {
-  //   fetchUsers();
-  // }, [page, search]);
-  const { data, isLoading } = useQuery({
-    queryKey: ["users", page, searchTerm, statusFilter, roleFilter],
-    queryFn: () =>
-      getUsers({
-        page,
-        limit: 5,
-        search: searchTerm,
-        status: statusFilter,
-        role: roleFilter,
-      }),
-  });
-  const users = data?.data?.data || [];
-  const totalPages = data?.data?.pagination?.totalPages || 1;
+  const [resetPasswordTarget, setResetPasswordTarget] = useState(null);
+  const [assignRoleTarget, setAssignRoleTarget] = useState(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
-  // const handleCreate = async (data) => {
-  //   const res = await createUser(data);
-  //   await fetchUsers();
-  //   setModalOpen(false);
-  //   setSelectedUsers(null);
-  // };
+  const { data, isLoading, isError, refetch } = useUsersList({ page, limit: 10, ...filters });
+  const { data: filterOptions } = useUserFilterOptions();
 
-  // const handleUpdate = async (data) => {
-  //   // To be implemented
-  //   await updateUser(selectedUsers._id, data);
-  //   await fetchUsers();
-  //   setModalOpen(false);
-  //   setSelectedUsers(null);
-  // };
-  const createUserMutation = useCrudMutation({
-    mutationFn: createUser,
-    queryKey: ["users"],
-  });
+  const users = data?.data ?? [];
+  const totalPages = data?.pagination?.totalPages ?? 1;
+
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
+  const resetPasswordMutation = useResetUserPassword();
+  const bulkStatusMutation = useBulkUpdateUserStatus();
+  const bulkDeleteMutation = useBulkDeleteUsers();
+  const importUsersMutation = useImportUsers();
+
+  const handleFilterChange = (patch) => {
+    setFilters((prev) => ({ ...prev, ...patch }));
+    setPage(1);
+    setSelectedIds([]);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+    setPage(1);
+    setSelectedIds([]);
+  };
+
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    setSelectedIds([]);
+  };
+
+  const handleExport = async (ids) => {
+    try {
+      setIsExporting(true);
+      const params = ids && ids.length ? { ids: ids.join(",") } : filters;
+      const res = await exportUserData(params);
+      downloadCsv(res.data, "users.csv");
+    } catch (error) {
+      toast.error("Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleCreate = (formData) => {
     setServerErrors(null);
-
     createUserMutation.mutate(formData, {
       onSuccess: () => {
         toast.success("User created successfully");
         setModalOpen(false);
-        setSelectedUsers(null);
+        setSelectedUser(null);
       },
       onError: (error) => {
         const data = error?.response?.data;
-        console.log("data ---", data);
         if (data?.field) {
-          // 🔥 email error modal এ পাঠাবো
-          setServerErrors({
-            [data.field]: data.message,
-          });
+          setServerErrors({ [data.field]: data.message });
         } else {
-          alert(data?.message || "Something went wrong");
+          toast.error(data?.message || "Something went wrong");
         }
       },
     });
   };
 
-  // update
-  const updateUserMutation = useCrudMutation({
-    mutationFn: ({ id, data }) => updateUser(id, data),
-    queryKey: ["users"],
-  });
-
   const handleUpdate = (formData) => {
     setServerErrors(null);
-
     updateUserMutation.mutate(
-      {
-        id: selectedUsers._id,
-        data: formData,
-      },
+      { id: selectedUser._id, data: formData },
       {
         onSuccess: () => {
           toast.success("User updated successfully");
           setModalOpen(false);
-          setSelectedUsers(null);
+          setSelectedUser(null);
         },
         onError: (error) => {
           const data = error?.response?.data;
-
           if (data?.field) {
-            setServerErrors({
-              [data.field]: data.message,
-            });
+            setServerErrors({ [data.field]: data.message });
           } else {
-            alert(data?.message || "Update failed");
+            toast.error(data?.message || "Update failed");
           }
         },
+      }
+    );
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteUserMutation.mutate(deleteTarget._id, {
+      onSuccess: () => {
+        toast.success("User deleted successfully");
+        setDeleteOpen(false);
+        setDeleteTarget(null);
       },
+      onError: () => toast.error("Failed to delete user"),
+    });
+  };
+
+  const handleToggleStatus = (user) => {
+    const nextStatus = user.status === "active" ? "inactive" : "active";
+    updateUserMutation.mutate(
+      { id: user._id, data: { status: nextStatus } },
+      {
+        onSuccess: () => toast.success(`User ${nextStatus === "active" ? "activated" : "deactivated"}`),
+        onError: () => toast.error("Failed to update status"),
+      }
     );
   };
 
-  // delete
-  const deleteUserMutation = useCrudMutation({
-    mutationFn: deleteUser,
-    queryKey: ["users"],
-  });
-
-  const StatusBadge = ({ status }) => {
-    const map = {
-      active: "bg-green-100 text-green-700",
-      inactive: "bg-gray-200 text-gray-600",
-    };
-
-    return (
-      <span
-        className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${
-          map[status] || "bg-gray-100 text-gray-600"
-        }`}
-      >
-        {status}
-      </span>
-    );
-  };
-
-  const RoleBadge = ({ role }) => {
-    const map = {
-      admin: "bg-indigo-100 text-indigo-700",
-      user: "bg-blue-100 text-blue-700",
-    };
-
-    return (
-      <span
-        className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${
-          map[role] || "bg-gray-100 text-gray-600"
-        }`}
-      >
-        {role}
-      </span>
-    );
-  };
-
-  const TableSkeleton = ({ rows = 5, cols = 6 }) => (
-    <>
-      {Array.from({ length: rows }).map((_, i) => (
-        <tr key={i} className="border-b">
-          {Array.from({ length: cols }).map((_, j) => (
-            <td key={j} className="px-6 py-4">
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-  const openDeleteModal = (user) => {
-    setDeleteTarget(user);
-    setDeleteOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    try {
-      if (!deleteTarget) return;
-      deleteUserMutation.mutate(deleteTarget._id, {
+  const handleResetPassword = (password) => {
+    resetPasswordMutation.mutate(
+      { id: resetPasswordTarget._id, password },
+      {
         onSuccess: () => {
-          toast.success("User deleted successfully");
-          setDeleteOpen(false);
-          setDeleteTarget(null);
+          toast.success("Password reset successfully");
+          setResetPasswordTarget(null);
         },
-      });
-    } catch (error) {
-      console.error("Failed to delete user", error);
-    }
+        onError: (error) =>
+          toast.error(error?.response?.data?.message || "Failed to reset password"),
+      }
+    );
+  };
+
+  const handleAssignRole = (role) => {
+    updateUserMutation.mutate(
+      { id: assignRoleTarget._id, data: { role } },
+      {
+        onSuccess: () => {
+          toast.success("Role updated successfully");
+          setAssignRoleTarget(null);
+        },
+        onError: () => toast.error("Failed to update role"),
+      }
+    );
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+  };
+
+  const handleToggleSelectAll = () => {
+    const pageIds = users.map((u) => u._id);
+    const allSelected = pageIds.every((id) => selectedIds.includes(id));
+    setSelectedIds(allSelected ? [] : pageIds);
+  };
+
+  const handleBulkStatus = (status) => {
+    bulkStatusMutation.mutate(
+      { ids: selectedIds, status },
+      {
+        onSuccess: () => {
+          toast.success(`${selectedIds.length} users updated`);
+          setSelectedIds([]);
+        },
+        onError: () => toast.error("Bulk update failed"),
+      }
+    );
+  };
+
+  const handleImport = (file) => {
+    return importUsersMutation.mutateAsync(file, {
+      onSuccess: (result) => {
+        if (result.createdCount > 0) {
+          toast.success(`${result.createdCount} user${result.createdCount === 1 ? "" : "s"} imported`);
+        }
+      },
+      onError: () => toast.error("Import failed"),
+    });
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteMutation.mutate(selectedIds, {
+      onSuccess: () => {
+        toast.success(`${selectedIds.length} users deleted`);
+        setSelectedIds([]);
+        setBulkDeleteOpen(false);
+      },
+      onError: () => toast.error("Bulk delete failed"),
+    });
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <UsersIcon className="w-8 h-8 text-indigo-600" />
-                  Users
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Manage your company database
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedUsers(null);
-                  setModalOpen(true);
-                }}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
-              >
-                <Plus className="w-5 h-5" />
-                Add User
-              </button>
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Users"
+        subtitle="Manage your company's team members and permissions"
+        primaryActionText="Add User"
+        onPrimaryAction={() => {
+          setSelectedUser(null);
+          setModalOpen(true);
+        }}
+        secondaryActionText="Import Users"
+        onSecondaryAction={() => setImportModalOpen(true)}
+      />
 
-            {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex flex-wrap gap-3">
-                <div className="flex-1 min-w-[250px]">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                      type="text"
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+      <UserSummaryCards />
 
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  <Filter className="w-4 h-4" />
-                  Filters
-                  {showFilters ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+      <UserFiltersBar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        onExport={() => handleExport()}
+        isExporting={isExporting}
+        filterOptions={filterOptions}
+      />
 
-              {showFilters && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                  <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="">All Roles</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
-                    <option value="sale">Sale</option>
-                  </select>
-                  <button
-                    onClick={() => {
-                      setStatusFilter("");
-                      setSearchTerm("");
-                      setRoleFilter("");
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+      <BulkActionsBar
+        selectedCount={selectedIds.length}
+        onActivate={() => handleBulkStatus("active")}
+        onDeactivate={() => handleBulkStatus("inactive")}
+        onDelete={() => setBulkDeleteOpen(true)}
+        onExportSelected={() => handleExport(selectedIds)}
+        onClear={() => setSelectedIds([])}
+        isBusy={bulkStatusMutation.isPending || bulkDeleteMutation.isPending}
+      />
 
-          {/* Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="bg-white divide-y divide-gray-200">
-                {isLoading ? (
-                  <TableSkeleton rows={5} cols={6} />
-                ) : users.length === 0 ? (
-                  <tr className="hover:bg-gray-50">
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      No users found
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((u, index) => (
-                    <tr key={u._id} className="hover:bg-gray-50">
-                      <td className="px-3 py-4 font-medium text-gray-800">
-                        {u.name}
-                      </td>
-
-                      <td className="px-3 py-4 text-sm text-gray-500">
-                        {u.phone || "—"}
-                      </td>
-
-                      <td className="px-3 py-4 text-sm text-gray-500">{u.email}</td>
-                      <td className="px-3 py-4">
-                        <StatusBadge status={u.status} />
-                      </td>
-
-                      <td className="px-3 py-4 text-sm text-gray-500">
-                        <RoleBadge role={u.role} />
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedUsers(u);
-                              setModalOpen(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-
-                          <button
-                            onClick={() => openDeleteModal(u)}
-                            className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex gap-2 mt-4">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Prev
-            </button>
-
-            <span className="px-3 py-1">
-              Page {page} of {totalPages}
-            </span>
-
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+      {isError ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+          <p className="text-body text-ink-muted">We couldn't load users right now.</p>
+          <Button variant="outline" onClick={() => refetch()}>
+            Retry
+          </Button>
         </div>
-      </div>
+      ) : (
+        <>
+          <UsersTable
+            users={users}
+            isLoading={isLoading}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
+            onView={(user) => navigate(`/users/${user._id}`)}
+            onEdit={(user) => {
+              setSelectedUser(user);
+              setModalOpen(true);
+            }}
+            onResetPassword={(user) => setResetPasswordTarget(user)}
+            onAssignRole={(user) => setAssignRoleTarget(user)}
+            onToggleStatus={handleToggleStatus}
+            onDelete={(user) => {
+              setDeleteTarget(user);
+              setDeleteOpen(true);
+            }}
+          />
+
+          <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+        </>
+      )}
 
       <UserModal
         isOpen={modalOpen}
-        user={selectedUsers}
+        user={selectedUser}
         onClose={() => setModalOpen(false)}
-        onSubmit={selectedUsers ? handleUpdate : handleCreate}
+        onSubmit={selectedUser ? handleUpdate : handleCreate}
         serverErrors={serverErrors}
       />
+
       <ConfirmDeleteModal
         isOpen={deleteOpen}
-        title="Delete Customer"
+        title="Delete User"
         message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
         onCancel={() => {
           setDeleteOpen(false);
           setDeleteTarget(null);
         }}
         onConfirm={confirmDelete}
-        loading={deleting}
+        loading={deleteUserMutation.isPending}
       />
-    </>
+
+      <ConfirmDeleteModal
+        isOpen={bulkDeleteOpen}
+        title="Delete Users"
+        message={`Are you sure you want to delete ${selectedIds.length} selected users? This action cannot be undone.`}
+        onCancel={() => setBulkDeleteOpen(false)}
+        onConfirm={confirmBulkDelete}
+        loading={bulkDeleteMutation.isPending}
+      />
+
+      <ResetPasswordModal
+        isOpen={Boolean(resetPasswordTarget)}
+        user={resetPasswordTarget}
+        onClose={() => setResetPasswordTarget(null)}
+        onSubmit={handleResetPassword}
+        isSubmitting={resetPasswordMutation.isPending}
+      />
+
+      <AssignRoleModal
+        isOpen={Boolean(assignRoleTarget)}
+        user={assignRoleTarget}
+        onClose={() => setAssignRoleTarget(null)}
+        onSubmit={handleAssignRole}
+        isSubmitting={updateUserMutation.isPending}
+      />
+
+      <ImportUsersModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImport={handleImport}
+        isSubmitting={importUsersMutation.isPending}
+      />
+    </div>
   );
 };
 

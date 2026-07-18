@@ -19,3 +19,35 @@ export const updateUser = (id, data) => {
 export const deleteUser = (id) => {
   return api.delete(`/user/${id}`);
 }
+
+export const getUserSummary = () => {
+  return api.get("/user/summary");
+}
+
+export const getUserFilterOptions = () => {
+  return api.get("/user/filter-options");
+}
+
+export const exportUserData = (params) => {
+  return api.get("/user/export", { params, responseType: "blob" });
+}
+
+export const bulkUpdateUserStatus = (ids, status) => {
+  return api.post("/user/bulk-status", { ids, status });
+}
+
+export const bulkDeleteUsers = (ids) => {
+  return api.post("/user/bulk-delete", { ids });
+}
+
+export const resetUserPassword = (id, password) => {
+  return api.put(`/user/${id}/reset-password`, { password });
+}
+
+export const importUsers = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return api.post("/user/import", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}

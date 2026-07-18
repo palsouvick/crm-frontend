@@ -9,6 +9,7 @@ import ActivityLogs from "../pages/ActivityLogs";
 import ProtectedRoute from "../components/ProtectedRoute";
 import FollowUp from "../pages/FollowUp";
 import Users from "../pages/Users";
+import UserDetailPlaceholder from "../pages/UserDetailPlaceholder";
 import Profile from "../pages/Profile";
 import LeadView from "../pages/LeadView";
 import Campaigns from "../pages/Campaigns";
@@ -23,6 +24,7 @@ import Company from "../pages/Company";
 import CompanyCreate from "../pages/CompanyCreate";
 import CompanyEdit from "../pages/CompanyEdit";
 import CompanyView from "../pages/CompanyView";
+import CompanyTimelinePlaceholder from "../pages/CompanyTimelinePlaceholder";
 
 const AppRoutes = () => {
   return (
@@ -37,6 +39,7 @@ const AppRoutes = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/users/:id" element={<UserDetailPlaceholder />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/:id" element={<LeadView />} />
@@ -57,6 +60,7 @@ const AppRoutes = () => {
           <Route path="/company" element={<Company />} />
           <Route path="/company/create" element={<CompanyCreate />} />
           <Route path="/company/:id/edit" element={<CompanyEdit />} />
+          <Route path="/company/:id/timeline" element={<CompanyTimelinePlaceholder />} />
           <Route path="/company/:id" element={<CompanyView />} />
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Route>

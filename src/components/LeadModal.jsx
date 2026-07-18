@@ -1,4 +1,5 @@
 import { useState,useEffect } from "react";
+import { X } from "lucide-react";
 
 const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
   const isEditMode = Boolean(lead?._id);
@@ -41,21 +42,33 @@ const LeadModal = ({ isOpen, onClose, onSubmit, customers, lead, users }) => {
 if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Create Lead</h2>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div className="bg-white w-full max-w-lg rounded-xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-6 py-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {isEditMode ? "Edit Lead" : "Create Lead"}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="text-gray-400 hover:text-gray-600 rounded p-1"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
             onSubmit(form);
           }}
-          className="space-y-3"
+          className="px-6 py-4 space-y-3 overflow-y-auto"
         >
           {/* Customer */}
           <select
             name="customer"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.customer}
             onChange={handleChange}
             required
@@ -74,7 +87,7 @@ if (!isOpen) return null;
             type="text"
             name="title"
             placeholder="Title"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.title}
             onChange={handleChange}
           />
@@ -82,7 +95,7 @@ if (!isOpen) return null;
             type="number"
             name="expectedValue"
             placeholder="Expected Deal Value"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.expectedValue}
             onChange={handleChange}
           />
@@ -90,7 +103,7 @@ if (!isOpen) return null;
             type="text"
             name="description"
             placeholder="Description"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.description}
             onChange={handleChange}
           /> */}
@@ -98,7 +111,7 @@ if (!isOpen) return null;
           {/* Status */}
           <select
             name="status"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.status}
             onChange={handleChange}
           >
@@ -112,7 +125,7 @@ if (!isOpen) return null;
           {/* Source */}
           <select
             name="source"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.source}
             onChange={handleChange}
           >
@@ -127,7 +140,7 @@ if (!isOpen) return null;
           {users.length > 0 && (
             <select
               name="assignedTo"
-              className="w-full border px-3 py-2 rounded"
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               value={form.assignedTo}
               onChange={handleChange}
             >
@@ -144,27 +157,27 @@ if (!isOpen) return null;
           <textarea
             name="description"
             placeholder="Description"
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             value={form.description}
             onChange={handleChange}
             rows={3}
           />
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              Create Lead
+              {isEditMode ? "Save Changes" : "Create Lead"}
             </button>
           </div>
         </form>

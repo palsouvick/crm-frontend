@@ -19,7 +19,7 @@ const navItems = [
   { to: "/", label: "Dashboard", Icon: LayoutDashboard, end: true },
   { to: "/users", label: "Users", Icon: Users, adminOnly: true },
   { to: "/company", label: "Company", Icon: Building2 },
-  { to: "/campaigns", label: "Campaigns", Icon: Megaphone },
+  { to: "/campaigns", label: "Campaigns", Icon: Megaphone, adminOnly: true },
   { to: "/customers", label: "Customers", Icon: UserCircle },
   { to: "/leads", label: "Leads", Icon: ClipboardList },
   { to: "/follow-up", label: "Follow Up", Icon: Clock },

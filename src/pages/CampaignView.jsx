@@ -4,6 +4,7 @@ import {
   getCampaignById,
   sendTestEmail,
   startCampaign,
+  pauseCampaign,
 } from "../api/campaignApi";
 import {
   FiUsers,
@@ -31,20 +32,18 @@ const CampaignView = () => {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
+  const fetchCampaign = async () => {
+    try {
+      const res = await getCampaignById(id);
+      setCampaigns(res.data.campaign);
+      setStats(res.data.stats);
+      setRecipients(res.data.recipients);
+    } catch (error) {
+      console.error("Fetch failed", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchCampaign = async () => {
-      try {
-        console.log("id -", id);
-        const res = await getCampaignById(id);
-        console.log("response -", res);
-        console.log("id -", id);
-        setCampaigns(res.data.campaign);
-        setStats(res.data.stats);
-        setRecipients(res.data.recipients);
-      } catch (error) {
-        console.error("Fecth failed", error);
-      }
-    };
     fetchCampaign();
   }, [id]);
 
@@ -73,19 +72,26 @@ const CampaignView = () => {
   const handleStartCampaign = async () => {
     try {
       setSendingTest(true);
-      const res = await startCampaign(id);
-      console.log("response -", res);
-      console.log("id -", id);
-      if (res.data.success) {
-        setSendingTest(false);
-        toast.success("Campaign started successfully");
-        // Immediately fetch updated data
-        await fetchCampaign();
-      }
-      setSendingTest(false);
+      await startCampaign(id);
+      toast.success("Campaign started successfully");
+      await fetchCampaign();
     } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to start campaign");
+    } finally {
       setSendingTest(false);
-      console.error("Fecth failed", error);
+    }
+  };
+
+  const handlePauseCampaign = async () => {
+    try {
+      setSendingTest(true);
+      await pauseCampaign(id);
+      toast.success("Campaign paused");
+      await fetchCampaign();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to pause campaign");
+    } finally {
+      setSendingTest(false);
     }
   };
 
@@ -138,23 +144,28 @@ const CampaignView = () => {
               Send Test
             </button>
 
-            {campaign.status === "Completed" ? (
+            {["completed", "failed", "archived"].includes(campaign.status) ? (
               <button
-                className="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed"
+                className="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed capitalize"
                 disabled
               >
-                Completed
+                {campaign.status}
               </button>
             ) : campaign.status !== "running" ? (
               <button
                 className="px-4 py-2 bg-green-600 text-white rounded"
                 onClick={handleStartCampaign}
+                disabled={sendingTest}
               >
                 {sendingTest ? "Starting..." : "Start Campaign"}
               </button>
             ) : (
-              <button className="px-4 py-2 bg-yellow-500 text-white rounded">
-                Pause
+              <button
+                className="px-4 py-2 bg-yellow-500 text-white rounded"
+                onClick={handlePauseCampaign}
+                disabled={sendingTest}
+              >
+                {sendingTest ? "Pausing..." : "Pause"}
               </button>
             )}
           </div>

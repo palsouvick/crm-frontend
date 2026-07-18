@@ -1,381 +1,325 @@
-import React, { useState, useEffect } from "react";
-import {
-  Building2,
-  Plus,
-  Search,
-  Filter,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Eye,
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  Users,
-  DollarSign,
-  Calendar,
-  Tag,
-  X,
-  Upload,
-  ChevronDown,
-  ChevronUp,
-  Briefcase,
-} from "lucide-react";
-import { getCompanies, deleteCompany } from "../api/companyApi";
-import CompanyFormModal from "../components/CompanyFormModal";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import PageHeader from "../components/PageHeader";
+import Button from "../components/ui/Button";
+import CompanySummaryCards from "../components/company/CompanySummaryCards";
+import CompanyFiltersBar from "../components/company/CompanyFiltersBar";
+import BulkActionsBar from "../components/company/BulkActionsBar";
+import CompaniesTable from "../components/company/CompaniesTable";
+import Pagination from "../components/ui/Pagination";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
-import { toast } from "react-hot-toast";
+import AssignOwnerModal from "../components/company/AssignOwnerModal";
+import BulkStatusModal from "../components/company/BulkStatusModal";
+import { exportCompanyData } from "../api/companyApi";
+import { getUsers } from "../api/userApi";
+import {
+  useCompaniesList,
+  useCompanyFilterOptions,
+  useUpdateCompany,
+  useDeleteCompany,
+  useBulkAssignOwner,
+  useBulkUpdateCompanyStatus,
+  useBulkDeleteCompanies,
+} from "../hooks/useCompanies";
+
+const INITIAL_FILTERS = {
+  search: "",
+  industry: "",
+  status: "",
+  companySize: "",
+  country: "",
+  state: "",
+  assignedTo: "",
+  tags: [],
+  dateFrom: "",
+  dateTo: "",
+};
+
+const downloadCsv = (blobData, filename) => {
+  const blob = new Blob([blobData]);
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
 
 const Company = () => {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  const navigate = useNavigate();
 
-  // Filters
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [industryFilter, setIndustryFilter] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isExporting, setIsExporting] = useState(false);
+  const [userOptions, setUserOptions] = useState([]);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const navigate = useNavigate();
+  const [assignOwnerTarget, setAssignOwnerTarget] = useState(null);
+  const [bulkAssignOwnerOpen, setBulkAssignOwnerOpen] = useState(false);
+  const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
+
+  const { data, isLoading, isError, refetch } = useCompaniesList({
+    page,
+    limit: 10,
+    ...filters,
+    tags: filters.tags.join(","),
+  });
+  const { data: filterOptions } = useCompanyFilterOptions();
+
+  const companies = data?.data ?? [];
+  const totalPages = data?.pagination?.pages ?? 1;
+
+  const updateCompanyMutation = useUpdateCompany();
+  const deleteCompanyMutation = useDeleteCompany();
+  const bulkAssignOwnerMutation = useBulkAssignOwner();
+  const bulkStatusMutation = useBulkUpdateCompanyStatus();
+  const bulkDeleteMutation = useBulkDeleteCompanies();
 
   useEffect(() => {
-    fetchCompanies();
-  }, [searchTerm, statusFilter, industryFilter]);
+    getUsers({ limit: 200 })
+      .then((res) => {
+        const users = res.data?.data ?? [];
+        setUserOptions(users.map((u) => ({ value: u._id, label: u.name })));
+      })
+      .catch(() => {});
+  }, []);
 
-  const fetchCompanies = async () => {
-    setLoading(true);
+  const handleFilterChange = (patch) => {
+    setFilters((prev) => ({ ...prev, ...patch }));
+    setPage(1);
+    setSelectedIds([]);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+    setPage(1);
+    setSelectedIds([]);
+  };
+
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    setSelectedIds([]);
+  };
+
+  const handleExport = async (ids) => {
     try {
-      const response = await getCompanies({
-        search: searchTerm,
-        status: statusFilter,
-        industry: industryFilter,
-        page: page,
-        limit: 5,
-      });
-      console.log(response.data);
-      setCompanies(response.data.data);
-      setTotalPages(response.data.pagination.pages);
+      setIsExporting(true);
+      const params = ids && ids.length
+        ? { ids: ids.join(",") }
+        : { ...filters, tags: filters.tags.join(",") };
+      const res = await exportCompanyData(params);
+      downloadCsv(res.data, "companies.csv");
     } catch (error) {
-      console.error("Error fetching companies:", error);
+      toast.error("Export failed");
     } finally {
-      setLoading(false);
+      setIsExporting(false);
     }
   };
 
-  const handleDelete = async (company) => {
-    setDeleteOpen(true);
-    setDeleteTarget(company);
-    console.log("Delete target set to:", company.name);
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteCompanyMutation.mutate(deleteTarget._id, {
+      onSuccess: () => {
+        toast.success("Company deleted successfully");
+        setDeleteOpen(false);
+        setDeleteTarget(null);
+      },
+      onError: () => toast.error("Failed to delete company"),
+    });
   };
 
-  const confirmDelete = async () => {
-    setDeleting(true);
-    try {
-      await deleteCompany(deleteTarget._id);
-      setDeleting(false);
-      setDeleteTarget(null);
-      toast.success("Company deleted successfully");
-    } catch (error) {
-      console.error("Delete failed", error);
-    } finally {
-      setDeleting(false);
-      setDeleteOpen(false);
-      setDeleteTarget(null);
-      fetchCompanies();
-    }
+  const handleArchive = (company) => {
+    updateCompanyMutation.mutate(
+      { id: company._id, data: { status: "inactive" } },
+      {
+        onSuccess: () => toast.success("Company archived"),
+        onError: () => toast.error("Failed to archive company"),
+      }
+    );
+  };
+
+  const handleAssignOwnerSubmit = (ownerIds) => {
+    updateCompanyMutation.mutate(
+      { id: assignOwnerTarget._id, data: { assignedTo: ownerIds } },
+      {
+        onSuccess: () => {
+          toast.success("Owner(s) updated");
+          setAssignOwnerTarget(null);
+        },
+        onError: () => toast.error("Failed to update owners"),
+      }
+    );
+  };
+
+  const handleBulkAssignOwnerSubmit = (ownerIds) => {
+    bulkAssignOwnerMutation.mutate(
+      { ids: selectedIds, ownerIds },
+      {
+        onSuccess: () => {
+          toast.success(`${selectedIds.length} companies updated`);
+          setSelectedIds([]);
+          setBulkAssignOwnerOpen(false);
+        },
+        onError: () => toast.error("Bulk owner assignment failed"),
+      }
+    );
+  };
+
+  const handleBulkStatusSubmit = (status) => {
+    bulkStatusMutation.mutate(
+      { ids: selectedIds, status },
+      {
+        onSuccess: () => {
+          toast.success(`${selectedIds.length} companies updated`);
+          setSelectedIds([]);
+          setBulkStatusOpen(false);
+        },
+        onError: () => toast.error("Bulk status update failed"),
+      }
+    );
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteMutation.mutate(selectedIds, {
+      onSuccess: () => {
+        toast.success(`${selectedIds.length} companies deleted`);
+        setSelectedIds([]);
+        setBulkDeleteOpen(false);
+      },
+      onError: () => toast.error("Bulk delete failed"),
+    });
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+  };
+
+  const handleToggleSelectAll = () => {
+    const pageIds = companies.map((c) => c._id);
+    const allSelected = pageIds.every((id) => selectedIds.includes(id));
+    setSelectedIds(allSelected ? [] : pageIds);
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <Building2 className="w-8 h-8 text-indigo-600" />
-                  Companies
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Manage your company database
-                </p>
-              </div>
-              <button
-                onClick={() => navigate("/company/create")}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
-              >
-                <Plus className="w-5 h-5" />
-                Add Company
-              </button>
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Companies"
+        subtitle="Manage your company database"
+        primaryActionText="Add Company"
+        onPrimaryAction={() => navigate("/company/create")}
+      />
 
-            {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex flex-wrap gap-3">
-                <div className="flex-1 min-w-[250px]">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                      type="text"
-                      placeholder="Search companies..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+      <CompanySummaryCards />
 
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  <Filter className="w-4 h-4" />
-                  Filters
-                  {showFilters ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+      <CompanyFiltersBar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        onExport={() => handleExport()}
+        isExporting={isExporting}
+        filterOptions={filterOptions}
+        ownerOptions={userOptions}
+      />
 
-              {showFilters && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+      <BulkActionsBar
+        selectedCount={selectedIds.length}
+        onAssignOwner={() => setBulkAssignOwnerOpen(true)}
+        onChangeStatus={() => setBulkStatusOpen(true)}
+        onDelete={() => setBulkDeleteOpen(true)}
+        onExportSelected={() => handleExport(selectedIds)}
+        onClear={() => setSelectedIds([])}
+        isBusy={bulkStatusMutation.isPending || bulkDeleteMutation.isPending || bulkAssignOwnerMutation.isPending}
+      />
 
-                  <select
-                    value={industryFilter}
-                    onChange={(e) => setIndustryFilter(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="">All Industries</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Retail">Retail</option>
-                  </select>
-
-                  <button
-                    onClick={() => {
-                      setStatusFilter("");
-                      setIndustryFilter("");
-                      setSearchTerm("");
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Companies List */}
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-          ) : companies.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">No companies found</p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
-              >
-                Create your first company
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Company
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact Info
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Industry
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tags
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {companies.map((company) => (
-                      <tr key={company._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-indigo-600" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {company.name}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {company.companySize} employees
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 flex items-center gap-1">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            {company.email || "N/A"}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center gap-1">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            {company.phone || "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {company.industry}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {company.type}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              company.status === "customer"
-                                ? "bg-green-100 text-green-800"
-                                : company.status === "lead"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : company.status === "prospect"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {company.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1">
-                            {company.tags?.slice(0, 2).map((tag, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                            {company.tags?.length > 2 && (
-                              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                                +{company.tags.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() =>
-                                navigate(`/company/${company._id}`)
-                              }
-                              className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                navigate(`/company/${company._id}/edit`)
-                              }
-                              className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(company)}
-                              className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {/* Pagination */}
-              <div className="flex gap-2 mt-4">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
-                >
-                  Prev
-                </button>
-
-                <span className="px-3 py-1">
-                  Page {page} of {totalPages}
-                </span>
-
-                <button
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </>
-          )}
+      {isError ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+          <p className="text-body text-ink-muted">We couldn't load companies right now.</p>
+          <Button variant="outline" onClick={() => refetch()}>
+            Retry
+          </Button>
         </div>
-      </div>
-      {showCreateModal && (
-        <CompanyFormModal
-          onClose={() => setShowCreateModal(false)}
-          onSave={fetchCompanies}
-        />
+      ) : (
+        <>
+          <CompaniesTable
+            companies={companies}
+            isLoading={isLoading}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
+            onView={(company) => navigate(`/company/${company._id}`)}
+            onEdit={(company) => navigate(`/company/${company._id}/edit`)}
+            onAssignOwner={(company) => setAssignOwnerTarget(company)}
+            onAddContact={() => navigate("/customers")}
+            onCreateLead={() => navigate("/leads")}
+            onScheduleFollowUp={() => navigate("/follow-up/create")}
+            onSendEmail={() => navigate("/email-templates")}
+            onViewTimeline={(company) => navigate(`/company/${company._id}/timeline`)}
+            onArchive={handleArchive}
+            onDelete={(company) => {
+              setDeleteTarget(company);
+              setDeleteOpen(true);
+            }}
+          />
+
+          <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+        </>
       )}
+
       <ConfirmDeleteModal
         isOpen={deleteOpen}
-        title="Delete Customer"
+        title="Delete Company"
         message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
         onCancel={() => {
           setDeleteOpen(false);
           setDeleteTarget(null);
         }}
         onConfirm={confirmDelete}
-        loading={deleting}
+        loading={deleteCompanyMutation.isPending}
       />
-    </>
+
+      <ConfirmDeleteModal
+        isOpen={bulkDeleteOpen}
+        title="Delete Companies"
+        message={`Are you sure you want to delete ${selectedIds.length} selected companies? This action cannot be undone.`}
+        onCancel={() => setBulkDeleteOpen(false)}
+        onConfirm={confirmBulkDelete}
+        loading={bulkDeleteMutation.isPending}
+      />
+
+      <AssignOwnerModal
+        isOpen={Boolean(assignOwnerTarget)}
+        company={assignOwnerTarget}
+        initialOwnerIds={assignOwnerTarget?.assignedTo?.map((u) => u._id) ?? []}
+        userOptions={userOptions}
+        onClose={() => setAssignOwnerTarget(null)}
+        onSubmit={handleAssignOwnerSubmit}
+        isSubmitting={updateCompanyMutation.isPending}
+      />
+
+      <AssignOwnerModal
+        isOpen={bulkAssignOwnerOpen}
+        company={null}
+        count={selectedIds.length}
+        initialOwnerIds={[]}
+        userOptions={userOptions}
+        onClose={() => setBulkAssignOwnerOpen(false)}
+        onSubmit={handleBulkAssignOwnerSubmit}
+        isSubmitting={bulkAssignOwnerMutation.isPending}
+      />
+
+      <BulkStatusModal
+        isOpen={bulkStatusOpen}
+        count={selectedIds.length}
+        onClose={() => setBulkStatusOpen(false)}
+        onSubmit={handleBulkStatusSubmit}
+        isSubmitting={bulkStatusMutation.isPending}
+      />
+    </div>
   );
 };
 

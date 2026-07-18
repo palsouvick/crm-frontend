@@ -114,6 +114,13 @@ const CompanyEdit = () => {
     }
   };
 
+  const removeTag = (tagToRemove) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+    });
+  };
+
   useEffect(() => {
     console.log("Fetching users for assignment...");
     console.log("id:", id);
@@ -262,6 +269,9 @@ const CompanyEdit = () => {
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                    <option value="lead">Lead</option>
+                    <option value="customer">Customer</option>
+                    <option value="prospect">Prospect</option>
                   </select>
                 </div>
 

@@ -1,30 +1,44 @@
 import { useState, useEffect } from "react";
+import Modal from "./ui/Modal";
+import Input from "./ui/Input";
+import PasswordInput from "./ui/PasswordInput";
+import DateInput from "./ui/DateInput";
+import Select from "./ui/Select";
+import FieldError from "./ui/FieldError";
+import Button from "./ui/Button";
 
-const UserModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  user,
-  serverErrors: backendErrors,
-}) => {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    dob: "",
-    role: "",
-    status: "",
-  });
-  // const [serverErrors, setServerErrors] = useState(null);
+const ROLE_OPTIONS = [
+  { value: "", label: "Select Role" },
+  { value: "user", label: "User" },
+  { value: "sales", label: "Sales" },
+  { value: "support", label: "Support" },
+  { value: "manager", label: "Manager" },
+  { value: "admin", label: "Admin" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "", label: "Select Status" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+];
+
+const INITIAL_FORM = {
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  dob: "",
+  role: "",
+  status: "",
+};
+
+const UserModal = ({ isOpen, onClose, onSubmit, user, serverErrors: backendErrors }) => {
+  const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setForm((prev) => ({ ...prev, [name]: value }));
-
-    // 🔥 clear server error for this field
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
@@ -34,11 +48,12 @@ const UserModal = ({
       email: user?.email || "",
       phone: user?.phone || "",
       password: "",
-      dob: user?.dob || "",
+      dob: user?.dob ? user.dob.slice(0, 10) : "",
       role: user?.role || "",
       status: user?.status || "",
     });
-  }, [user]);
+    setErrors({});
+  }, [user, isOpen]);
 
   useEffect(() => {
     if (backendErrors) {
@@ -46,148 +61,83 @@ const UserModal = ({
     }
   }, [backendErrors]);
 
-  // 🔹 2. Early return AFTER hooks
-  if (!isOpen) return null;
-
   const validate = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Name is required";
     if (!form.email.trim()) newErrors.email = "Email is required";
-    if (!form.phone.trim()) newErrors.phone = "Phone is required";
-    // ✅ password only when creating
     if (!user && !form.password.trim()) {
       newErrors.password = "Password is required";
     }
     if (!form.role.trim()) newErrors.role = "Role is required";
 
     setErrors(newErrors);
-    console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      console.log("🔥 handleSubmit called");
-      if (!validate()) return;
-      onSubmit(form);
-      console.log("🔥 calling onSubmit", form); // 👈 এটা
-    } catch (error) {
-      console.error("Submission error:", error);
-    }
+    if (!validate()) return;
+    onSubmit(form);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className="bg-white p-6 rounded w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">
-          {user ? "Edit Customer" : "Add Customer"}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <input
-              name="name"
-              placeholder="Name"
-              className="w-full border px-3 py-2 rounded"
-              value={form.name}
-              onChange={handleChange}
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name}</p>
-            )}
-          </div>
-          <div>
-            <input
-              name="email"
-              placeholder="Email"
-              className="w-full border px-3 py-2 rounded"
-              value={form.email || ""}
-              onChange={handleChange}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email}</p>
-            )}
-          </div>
-          <div>
-            <input
-              name="phone"
-              placeholder="Phone"
-              className="w-full border px-3 py-2 rounded"
-              value={form.phone}
-              onChange={handleChange}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm">{errors.phone}</p>
-            )}
-          </div>
-          {!user && (
-            <div>
-              <input
-                name="password"
-                placeholder="Password"
-                className="w-full border px-3 py-2 rounded"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
-              )}
-            </div>
-          )}
-          <div>
-            <input
-              type="date"
-              name="dob"
-              placeholder="Date of Birth"
-              className="w-full border px-3 py-2 rounded"
-              value={form.dob}
-              onChange={(e) => setForm({ ...form, dob: e.target.value })}
-            />
-            {errors.dob && <p className="text-red-500 text-sm">{errors.dob}</p>}
-          </div>
-          {/* Status */}
-          <select
-            name="status"
-            className="w-full border px-3 py-2 rounded"
-            value={form.status}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={user ? "Edit User" : "Add User"}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>Save</Button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div>
+          <Input name="name" placeholder="Name" value={form.name} onChange={handleChange} error={Boolean(errors.name)} />
+          <FieldError message={errors.name} />
+        </div>
+        <div>
+          <Input
+            name="email"
+            placeholder="Email"
+            value={form.email}
             onChange={handleChange}
-          >
-            <option value="">Select Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          {/* Role To */}
-          <select
-            name="role"
-            className="w-full border px-3 py-2 rounded"
-            value={form.role}
-            onChange={handleChange}
-          >
-            <option value="">Select Role</option>
-            <option value="admin">Admin</option>
-            <option value="sale">Sale</option>
-            <option value="support">Support</option>
-          </select>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
-              Save
-            </button>
+            error={Boolean(errors.email)}
+          />
+          <FieldError message={errors.email} />
+        </div>
+        <div>
+          <Input name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} error={Boolean(errors.phone)} />
+          <FieldError message={errors.phone} />
+        </div>
+        {!user && (
+          <div>
+            <PasswordInput
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              error={Boolean(errors.password)}
+            />
+            <FieldError message={errors.password} />
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+        <div>
+          <DateInput
+            value={form.dob}
+            onChange={(e) => setForm({ ...form, dob: e.target.value })}
+          />
+          <FieldError message={errors.dob} />
+        </div>
+        <Select name="status" options={STATUS_OPTIONS} value={form.status} onChange={handleChange} />
+        <div>
+          <Select name="role" options={ROLE_OPTIONS} value={form.role} onChange={handleChange} error={Boolean(errors.role)} />
+          <FieldError message={errors.role} />
+        </div>
+      </form>
+    </Modal>
   );
 };
 
